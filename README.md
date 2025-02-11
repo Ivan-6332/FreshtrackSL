@@ -1,6 +1,6 @@
 # FreshtrackSL
 පන්ඩිත වෙන්නෙ නැතුව මේකෙ තියෙන විදිහට කරපියව්.. නැත්තන් බලාගමු.💀🔪💣                                                            
-Pull req ekk create nokara ekkvath pull karannepa. req ekk create karala mata daanna then mn daanm. 
+Hamoma branches hadaganna vena venama, kauruth e branches main ekata merge karanna yannepa api anthimata okkoma ekata merge karapu ethakn karana okkoma wada tika personal branch eke thiyaganna.
 
 Font Family -                                                                                                            
 Font Size -                                                                                                              
