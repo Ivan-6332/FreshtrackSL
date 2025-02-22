@@ -1,0 +1,1 @@
+ F:\\2nd\ year\\SDGP-GIT\\FreshtrackSL\\Ivan\\frontend\\.dart_tool\\flutter_build\\94d00d7ca2ad26f8e283de934cc4fd74\\native_assets.yaml: 
