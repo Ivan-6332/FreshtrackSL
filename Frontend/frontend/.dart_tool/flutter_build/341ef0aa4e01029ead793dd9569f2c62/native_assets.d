@@ -1,1 +1,0 @@
- F:\\2nd\ year\\Git\ hub\ Fresh\ track\ Final\\frontend\\.dart_tool\\flutter_build\\341ef0aa4e01029ead793dd9569f2c62\\native_assets.yaml: 
