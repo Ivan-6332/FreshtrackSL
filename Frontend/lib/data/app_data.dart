@@ -6,30 +6,35 @@ class AppData {
       "name": "Carrot",
       "demand": 145.5,
       "isFavorited": false,
+      "category": "root vegetables"
     },
     {
       "id": 2,
       "name": "Tomato",
       "demand": 178.2,
       "isFavorited": true,
+      "category": "fruiting vegetables"
     },
     {
       "id": 3,
       "name": "Beans",
       "demand": 92.8,
       "isFavorited": true,
+      "category": "legumes & pods"
     },
     {
       "id": 4,
       "name": "Cabbage",
       "demand": 115.3,
       "isFavorited": false,
+      "category": "cruciferous vegetables"
     },
     {
       "id": 5,
       "name": "Onion",
       "demand": 167.9,
       "isFavorited": true,
+      "category": "bulb vegetables"
     }
   ];
 
