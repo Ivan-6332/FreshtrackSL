@@ -33,6 +33,38 @@ class AppData {
     }
   ];
 
-// categories list here
-
+  static final List<Map<String, dynamic>> categories = [
+    {
+      "name": "leafy greens",
+      "icon": "🥬"
+    },
+    {
+      "name": "root vegetables",
+      "icon": "🥕"
+    },
+    {
+      "name": "fruiting vegetables",
+      "icon": "🍅"
+    },
+    {
+      "name": "cruciferous vegetables",
+      "icon": "🥦"
+    },
+    {
+      "name": "legumes & pods",
+      "icon": "🫘"
+    },
+    {
+      "name": "bulb vegetables",
+      "icon": "🧅"
+    },
+    {
+      "name": "spices",
+      "icon": "🌶️"
+    },
+    {
+      "name": "grains",
+      "icon": "🌾"
+    }
+  ];
 }
