@@ -1,6 +1,7 @@
 // lib/screens/tabs/home_tab.dart
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import '../../data/app_data.dart';
 import '../../models/crop.dart';
 import '../../components/greeting.dart';
 import '../../components/search_bar.dart';
@@ -23,19 +24,9 @@ class _HomeTabState extends State<HomeTab> {
     _loadCrops();
   }
 
-  Future<void> _loadCrops() async {
-    // In a real app, you would load from assets
-    // For now, we'll hardcode the data
-    final jsonData = [
-      {"id": 1, "name": "Carrot", "demand": 145.5, "isFavorited": false},
-      {"id": 2, "name": "Tomato", "demand": 178.2, "isFavorited": true},
-      {"id": 3, "name": "Beans", "demand": 92.8, "isFavorited": true},
-      {"id": 4, "name": "Cabbage", "demand": 115.3, "isFavorited": false},
-      {"id": 5, "name": "Onion", "demand": 167.9, "isFavorited": true}
-    ];
-
+  void _loadCrops() {
     setState(() {
-      crops = jsonData.map((json) => Crop.fromJson(json)).toList();
+      crops = AppData.vegetables.map((json) => Crop.fromJson(json)).toList();
     });
   }
 
