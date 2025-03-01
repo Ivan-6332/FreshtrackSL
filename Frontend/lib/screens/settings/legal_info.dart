@@ -20,7 +20,12 @@ class LegalInfoScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // add links here
+          ListTile(
+            leading: const Icon(Icons.privacy_tip),
+            title: const Text('Privacy Policy'),
+            onTap: () => _launchURL('https://your-privacy-policy-url.com'),
+          )
+          // add T&C link here
         ],
       ),
     );
