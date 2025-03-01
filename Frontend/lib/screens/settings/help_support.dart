@@ -24,8 +24,25 @@ class HelpSupportScreen extends StatelessWidget {
             leading: const Icon(Icons.play_circle),
             title: const Text('How to use the App?'),
             onTap: () => _launchURL('https://youtube.com/your-tutorial-video'),
-          )
-          // Add agency contacts here
+          ),
+          const Divider(height: 32),
+          const Text(
+            'Government Agencies',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+            padding: EdgeInsets.symmetric(vertical: 8),
+          ),
+          const ListTile(
+            title: Text('Agriculture Department'),
+            subtitle: Text('Hotline: 1920'),
+          ),
+          const ListTile(
+            title: Text('Ministry of Agriculture'),
+            subtitle: Text('Phone: 011-2869553'),
+          ),
+          // Add more agency contacts as needed
         ],
       ),
     );
