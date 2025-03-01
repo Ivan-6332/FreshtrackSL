@@ -24,8 +24,12 @@ class LegalInfoScreen extends StatelessWidget {
             leading: const Icon(Icons.privacy_tip),
             title: const Text('Privacy Policy'),
             onTap: () => _launchURL('https://your-privacy-policy-url.com'),
-          )
-          // add T&C link here
+          ),
+          ListTile(
+            leading: const Icon(Icons.description),
+            title: const Text('Terms and Conditions'),
+            onTap: () => _launchURL('https://your-terms-url.com'),
+          ),
         ],
       ),
     );
