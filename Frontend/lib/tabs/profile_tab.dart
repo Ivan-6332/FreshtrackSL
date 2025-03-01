@@ -54,7 +54,71 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                 ],
               ),
-            )
+            ),
+            const Divider(),
+            // Settings List
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  // Language Dropdown
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Language'),
+                      DropdownButton<String>(
+                        value: _selectedLanguage,
+                        items: ['English', 'සිංහල', 'தமிழ்']
+                            .map((String value) => DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        ))
+                            .toList(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _selectedLanguage = newValue;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Theme Toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Light Theme'),
+                      Switch(
+                        value: _isDarkMode,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isDarkMode = value;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  // Notifications Toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Notifications'),
+                      Switch(
+                        value: _notificationsEnabled,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _notificationsEnabled = value;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16)
+                ],
+              ),
+            ),
           ],
         ),
       ),
