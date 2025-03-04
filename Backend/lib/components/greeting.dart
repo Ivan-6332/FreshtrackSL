@@ -15,6 +15,6 @@ class Greeting extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-    );
+    ); //padding
   }
 }

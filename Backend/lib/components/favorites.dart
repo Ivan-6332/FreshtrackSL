@@ -42,11 +42,11 @@ class Favorites extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
-                ),
+                ), //text
               ],
             ),
           ),
-          ...favoriteCrops.map((crop) => CropCard(crop: crop)),
+          ...favoriteCrops.map((crop) => CropCard(crop: crop)), //
         ],
       ),
     );

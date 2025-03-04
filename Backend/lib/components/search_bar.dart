@@ -1,6 +1,7 @@
 // lib/components/search_bar.dart
 import 'package:flutter/material.dart';
 
+//profile
 class SearchBarWithProfile extends StatelessWidget {
   const SearchBarWithProfile({super.key});
 
