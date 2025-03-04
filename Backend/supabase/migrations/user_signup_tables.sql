@@ -14,7 +14,7 @@ CREATE TABLE user_profiles (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Create location_data table
+-- Create location_data table to farmer deatils to connect
 CREATE TABLE location_data (
     id SERIAL PRIMARY KEY,
     province TEXT NOT NULL,
