@@ -6,7 +6,7 @@ class AppData {
       "name": "Carrot",
       "demand": 145.5,
       "isFavorited": false,
-      "category": "root vegetables"
+      "category": "root vegetables" // data
     },
     {
       "id": 2,
@@ -39,37 +39,13 @@ class AppData {
   ];
 
   static final List<Map<String, dynamic>> categories = [
-    {
-      "name": "leafy greens",
-      "icon": "🥬"
-    },
-    {
-      "name": "root vegetables",
-      "icon": "🥕"
-    },
-    {
-      "name": "fruiting vegetables",
-      "icon": "🍅"
-    },
-    {
-      "name": "cruciferous vegetables",
-      "icon": "🥦"
-    },
-    {
-      "name": "legumes & pods",
-      "icon": "🫘"
-    },
-    {
-      "name": "bulb vegetables",
-      "icon": "🧅"
-    },
-    {
-      "name": "spices",
-      "icon": "🌶️"
-    },
-    {
-      "name": "grains",
-      "icon": "🌾"
-    }
+    {"name": "leafy greens", "icon": "🥬"},
+    {"name": "root vegetables", "icon": "🥕"},
+    {"name": "fruiting vegetables", "icon": "🍅"},
+    {"name": "cruciferous vegetables", "icon": "🥦"},
+    {"name": "legumes & pods", "icon": "🫘"},
+    {"name": "bulb vegetables", "icon": "🧅"},
+    {"name": "spices", "icon": "🌶️"},
+    {"name": "grains", "icon": "🌾"}
   ];
 }
