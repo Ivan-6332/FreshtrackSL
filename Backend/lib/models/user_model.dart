@@ -8,7 +8,7 @@ class UserModel {
   final String? district;
   final DateTime createdAt;
   final DateTime updatedAt;
-
+// sign up details
   UserModel({
     required this.id,
     required this.email,

@@ -10,5 +10,5 @@ class LocationData {
     'North Central': ['Anuradhapura', 'Polonnaruwa'],
     'Uva': ['Badulla', 'Monaragala'],
     'Sabaragamuwa': ['Ratnapura', 'Kegalle'],
-  };
+  }; //location details
 }
