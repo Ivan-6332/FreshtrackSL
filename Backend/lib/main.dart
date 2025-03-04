@@ -10,7 +10,7 @@ import 'services/supabase_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
-
+//suparbase links
   await SupabaseService().initialize(
     'https://zdawprzqlmhmflbuajlo.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkYXdwcnpxbG1obWZsYnVhamxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1NzQ5MDksImV4cCI6MjA1NjE1MDkwOX0.QhSazeIFBFfDpDBbA7QhO-87FBTn51KZQ1pcaD7lg_g',
