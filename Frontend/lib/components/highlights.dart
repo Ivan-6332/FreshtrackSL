@@ -16,22 +16,44 @@ class Highlights extends StatelessWidget {
     final highestDemand = sortedCrops.first;
     final lowestDemand = sortedCrops.last;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text(
-            'Highlights',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.green.shade100),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      margin: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.trending_up, color: Colors.green.shade700),
+                const SizedBox(width: 8),
+                const Text(
+                  'Highlights',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        CropCard(crop: highestDemand),
-        CropCard(crop: lowestDemand),
-      ],
+          CropCard(crop: highestDemand),
+          CropCard(crop: lowestDemand),
+        ],
+      ),
     );
   }
 }

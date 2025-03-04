@@ -9,6 +9,7 @@ class HelpSupportScreen extends StatelessWidget {
     if (await canLaunch(url)) {
       await launch(url);
     }
+
   }
 
   @override
@@ -32,7 +33,7 @@ class HelpSupportScreen extends StatelessWidget {
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
-            // padding: EdgeInsets.symmetric(vertical: 8),
+            //padding: EdgeInsets.symmetric(vertical: 8),
           ),
           const ListTile(
             title: Text('Agriculture Department'),
