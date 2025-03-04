@@ -31,7 +31,8 @@ class _ProfileTabState extends State<ProfileTab> {
                   CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.person, size: 40, color: Colors.grey),
+                    child:
+                        const Icon(Icons.person, size: 40, color: Colors.grey),
                   ),
                   const SizedBox(width: 16),
                   const Column(
@@ -61,7 +62,7 @@ class _ProfileTabState extends State<ProfileTab> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  // Language Dropdown
+                  // Language Dropdown app
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -70,9 +71,9 @@ class _ProfileTabState extends State<ProfileTab> {
                         value: _selectedLanguage,
                         items: ['English', 'සිංහල', 'தமிழ்']
                             .map((String value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        ))
+                                  value: value,
+                                  child: Text(value),
+                                ))
                             .toList(),
                         onChanged: (String? newValue) {
                           if (newValue != null) {
