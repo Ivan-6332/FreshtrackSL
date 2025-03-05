@@ -1,6 +1,7 @@
 // lib/components/crop_card.dart
 import 'package:flutter/material.dart';
 import '../models/crop.dart';
+import '../config/app_localizations.dart';
 
 class CropCard extends StatelessWidget {
   final Crop crop;
@@ -26,6 +27,8 @@ class CropCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
       elevation: 2,
@@ -53,15 +56,19 @@ class CropCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: crop.demand > 150 ? Colors.green[100] : Colors.red[100],
+                    color:
+                        crop.demand > 150 ? Colors.green[100] : Colors.red[100],
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     '${crop.demand.toStringAsFixed(1)}%',
                     style: TextStyle(
-                      color: crop.demand > 150 ? Colors.green[900] : Colors.red[900],
+                      color: crop.demand > 150
+                          ? Colors.green[900]
+                          : Colors.red[900],
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -83,9 +90,9 @@ class CropCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'View History',
-                  style: TextStyle(fontSize: 14),
+                child: Text(
+                  localizations.get('viewHistory'),
+                  style: const TextStyle(fontSize: 14),
                 ),
               ),
             ),

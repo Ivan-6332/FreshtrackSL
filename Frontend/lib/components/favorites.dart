@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../models/crop.dart';
 import 'crop_card.dart';
+import '../config/app_localizations.dart';
 
 class Favorites extends StatelessWidget {
   final List<Crop> crops;
@@ -11,6 +12,7 @@ class Favorites extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final favoriteCrops = crops.where((crop) => crop.isFavorited).toList();
+    final localizations = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -35,9 +37,9 @@ class Favorites extends StatelessWidget {
               children: [
                 Icon(Icons.star, color: Colors.green.shade700),
                 const SizedBox(width: 8),
-                const Text(
-                  'Favorites',
-                  style: TextStyle(
+                Text(
+                  localizations.get('favorites'),
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
