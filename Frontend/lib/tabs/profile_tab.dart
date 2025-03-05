@@ -19,6 +19,19 @@ class _ProfileTabState extends State<ProfileTab> {
   bool _isDarkMode = false;
   bool _notificationsEnabled = true;
 
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the selected language after the widget is inserted into the tree
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentLocale =
+          Provider.of<LanguageProvider>(context, listen: false).currentLocale;
+      setState(() {
+        _selectedLanguage = currentLocale.languageCode;
+      });
+    });
+  }
+
   String _getLanguageDisplayName(String code) {
     switch (code) {
       case 'en':
@@ -35,6 +48,10 @@ class _ProfileTabState extends State<ProfileTab> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    // Get the current language code from the provider
+    final currentLocale = Provider.of<LanguageProvider>(context).currentLocale;
+    _selectedLanguage =
+        currentLocale.languageCode; // Update the selected language
 
     return Scaffold(
       body: SingleChildScrollView(
