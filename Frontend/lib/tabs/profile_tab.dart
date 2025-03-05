@@ -5,7 +5,7 @@ import '../../screens/settings/legal_info.dart';
 import '../../screens/settings/help_support.dart';
 import '../../config/app_localizations.dart';
 import 'package:provider/provider.dart';
-import 'providers/language_provider.dart';
+import '../../providers/language_provider.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
