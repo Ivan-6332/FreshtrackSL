@@ -4,6 +4,8 @@ import '../../screens/settings/account_settings.dart';
 import '../../screens/settings/legal_info.dart';
 import '../../screens/settings/help_support.dart';
 import '../../config/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'providers/language_provider.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -200,8 +202,7 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   void _updateAppLocale(BuildContext context, String languageCode) {
-    // You'll need to implement a state management solution to update the app's locale
-    // This could be done using Provider, Riverpod, or other state management solutions
-    // For now, this is a placeholder
+    Provider.of<LanguageProvider>(context, listen: false)
+        .changeLanguage(languageCode);
   }
 }
