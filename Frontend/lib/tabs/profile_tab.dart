@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../screens/settings/account_settings.dart';
 import '../../screens/settings/legal_info.dart';
 import '../../screens/settings/help_support.dart';
+import '../../config/app_localizations.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -12,12 +13,27 @@ class ProfileTab extends StatefulWidget {
 }
 
 class _ProfileTabState extends State<ProfileTab> {
-  String _selectedLanguage = 'English';
+  String _selectedLanguage = 'en';
   bool _isDarkMode = false;
   bool _notificationsEnabled = true;
 
+  String _getLanguageDisplayName(String code) {
+    switch (code) {
+      case 'en':
+        return 'English';
+      case 'si':
+        return 'සිංහල';
+      case 'ta':
+        return 'தமிழ்';
+      default:
+        return 'English';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -31,22 +47,23 @@ class _ProfileTabState extends State<ProfileTab> {
                   CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.person, size: 40, color: Colors.grey),
+                    child:
+                        const Icon(Icons.person, size: 40, color: Colors.grey),
                   ),
                   const SizedBox(width: 16),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Username',
-                        style: TextStyle(
+                        localizations.get('username'),
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         'user@domain.com',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.grey,
                         ),
                       ),
@@ -65,19 +82,20 @@ class _ProfileTabState extends State<ProfileTab> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Language'),
+                      Text(localizations.get('language')),
                       DropdownButton<String>(
                         value: _selectedLanguage,
-                        items: ['English', 'සිංහල', 'தமிழ்']
-                            .map((String value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        ))
+                        items: ['en', 'si', 'ta']
+                            .map((String code) => DropdownMenuItem<String>(
+                                  value: code,
+                                  child: Text(_getLanguageDisplayName(code)),
+                                ))
                             .toList(),
                         onChanged: (String? newValue) {
                           if (newValue != null) {
                             setState(() {
                               _selectedLanguage = newValue;
+                              _updateAppLocale(context, newValue);
                             });
                           }
                         },
@@ -89,7 +107,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Light Theme'),
+                      Text(localizations.get('lightTheme')),
                       Switch(
                         value: _isDarkMode,
                         onChanged: (bool value) {
@@ -104,7 +122,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Notifications'),
+                      Text(localizations.get('notifications')),
                       Switch(
                         value: _notificationsEnabled,
                         onChanged: (bool value) {
@@ -119,7 +137,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   // Settings Options
                   ListTile(
                     leading: const Icon(Icons.settings),
-                    title: const Text('Account Settings'),
+                    title: Text(localizations.get('accountSettings')),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
                       Navigator.push(
@@ -132,7 +150,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.description),
-                    title: const Text('Legal Info'),
+                    title: Text(localizations.get('legalInfo')),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
                       Navigator.push(
@@ -145,7 +163,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.help),
-                    title: const Text('Help & Support'),
+                    title: Text(localizations.get('helpSupport')),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
                       Navigator.push(
@@ -162,7 +180,6 @@ class _ProfileTabState extends State<ProfileTab> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Add logout functionality
                         Navigator.pushReplacementNamed(context, '/login');
                       },
                       style: ElevatedButton.styleFrom(
@@ -170,7 +187,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text('Log Out'),
+                      child: Text(localizations.get('logOut')),
                     ),
                   ),
                 ],
@@ -180,5 +197,11 @@ class _ProfileTabState extends State<ProfileTab> {
         ),
       ),
     );
+  }
+
+  void _updateAppLocale(BuildContext context, String languageCode) {
+    // You'll need to implement a state management solution to update the app's locale
+    // This could be done using Provider, Riverpod, or other state management solutions
+    // For now, this is a placeholder
   }
 }
