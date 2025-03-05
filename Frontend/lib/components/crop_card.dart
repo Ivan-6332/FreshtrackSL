@@ -6,7 +6,7 @@ class CropCard extends StatelessWidget {
   final Crop crop;
 
   const CropCard({super.key, required this.crop});
-//crop
+
   String getCropIcon() {
     switch (crop.name.toLowerCase()) {
       case 'carrot':
@@ -53,19 +53,15 @@ class CropCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color:
-                        crop.demand > 150 ? Colors.green[100] : Colors.red[100],
+                    color: crop.demand > 150 ? Colors.green[100] : Colors.red[100],
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     '${crop.demand.toStringAsFixed(1)}%',
                     style: TextStyle(
-                      color: crop.demand > 150
-                          ? Colors.green[900]
-                          : Colors.red[900],
+                      color: crop.demand > 150 ? Colors.green[900] : Colors.red[900],
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),

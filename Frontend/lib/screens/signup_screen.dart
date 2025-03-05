@@ -13,7 +13,7 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen>
     with SingleTickerProviderStateMixin {
-  // Color constants
+  // Color scheme - matching the login screen
   static const Color _primaryGreen =
       Color(0xFF2E7D32); // Deeper green for better contrast
   static const Color _lightGreen = Color(0xFF81C784); // Accent green

@@ -8,6 +8,6 @@ class MapTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Center(
       child: Text('Map Tab Content'),
-    ); //center
+    );
   }
 }

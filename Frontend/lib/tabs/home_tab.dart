@@ -15,7 +15,6 @@ class HomeTab extends StatefulWidget {
   State<HomeTab> createState() => _HomeTabState();
 }
 
-//
 class _HomeTabState extends State<HomeTab> {
   List<Crop> crops = [];
 
@@ -24,10 +23,8 @@ class _HomeTabState extends State<HomeTab> {
   final Color _darkGreen = const Color(0xFF81C784); // Darker green for buttons
   final Color _lightGreen = const Color(0xFFE8F5E9); // Very soft, pale green
   final Color _softBlack = const Color(0xFF424242); // Soft, not harsh black
-  final Color _offWhite =
-      const Color(0xFFFAFAFA); // Slightly off-white for eye comfort
-  final Color _cardBg =
-      const Color(0xFFF0F0F0); // Slightly darker card background
+  final Color _offWhite = const Color(0xFFFAFAFA); // Slightly off-white for eye comfort
+  final Color _cardBg = const Color(0xFFF0F0F0); // Slightly darker card background
 
   @override
   void initState() {
@@ -61,9 +58,9 @@ class _HomeTabState extends State<HomeTab> {
                   Theme(
                     data: Theme.of(context).copyWith(
                       textTheme: Theme.of(context).textTheme.apply(
-                            bodyColor: _softBlack,
-                            displayColor: _darkGreen,
-                          ),
+                        bodyColor: _softBlack,
+                        displayColor: _darkGreen,
+                      ),
                     ),
                     child: const Greeting(),
                   ),
@@ -151,20 +148,18 @@ class _HomeTabState extends State<HomeTab> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           ),
                         ),
                         // Custom text theme for crop names
                         textTheme: Theme.of(context).textTheme.copyWith(
-                              titleMedium: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: _softBlack,
-                                overflow: TextOverflow
-                                    .ellipsis, // Prevent text wrapping
-                              ),
-                            ),
+                          titleMedium: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: _softBlack,
+                            overflow: TextOverflow.ellipsis, // Prevent text wrapping
+                          ),
+                        ),
                         cardTheme: CardTheme(
                           color: _offWhite,
                           elevation: 2,
@@ -218,14 +213,13 @@ class _HomeTabState extends State<HomeTab> {
                         ),
                         // Custom text theme to ensure single line crop names
                         textTheme: Theme.of(context).textTheme.copyWith(
-                              titleMedium: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: _softBlack,
-                                overflow: TextOverflow
-                                    .ellipsis, // Ensure single line text
-                              ),
-                            ),
+                          titleMedium: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: _softBlack,
+                            overflow: TextOverflow.ellipsis, // Ensure single line text
+                          ),
+                        ),
                         // Button styling consistent with highlights
                         elevatedButtonTheme: ElevatedButtonThemeData(
                           style: ElevatedButton.styleFrom(

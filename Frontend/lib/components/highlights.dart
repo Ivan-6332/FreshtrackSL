@@ -15,7 +15,7 @@ class Highlights extends StatelessWidget {
 
     final highestDemand = sortedCrops.first;
     final lowestDemand = sortedCrops.last;
-//container
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -34,7 +34,7 @@ class Highlights extends StatelessWidget {
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
               ),
-            ), //child
+            ),
             child: Row(
               children: [
                 Icon(Icons.trending_up, color: Colors.green.shade700),

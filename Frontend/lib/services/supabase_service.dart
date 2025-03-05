@@ -6,7 +6,7 @@ class SupabaseService {
   SupabaseService._internal();
 
   late final SupabaseClient _supabaseClient;
-//supabase initialization
+
   Future<void> initialize(String supabaseUrl, String supabaseAnonKey) async {
     await Supabase.initialize(
       url: supabaseUrl,

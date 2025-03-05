@@ -12,9 +12,8 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen>
-    with SingleTickerProviderStateMixin {
-  // Current tab index
+class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateMixin {
+  // Current selected tab index
   int _currentIndex = 0;
 
   // Animation controller for tab transitions
@@ -94,23 +93,19 @@ class _MainScreenState extends State<MainScreen>
           },
           items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined,
-                  color: _currentIndex == 0 ? _primaryGreen : _inactiveGrey),
+              icon: Icon(Icons.home_outlined, color: _currentIndex == 0 ? _primaryGreen : _inactiveGrey),
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.explore_outlined,
-                  color: _currentIndex == 1 ? _primaryGreen : _inactiveGrey),
+              icon: Icon(Icons.explore_outlined, color: _currentIndex == 1 ? _primaryGreen : _inactiveGrey),
               label: 'Explore',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.map_outlined,
-                  color: _currentIndex == 2 ? _primaryGreen : _inactiveGrey),
+              icon: Icon(Icons.map_outlined, color: _currentIndex == 2 ? _primaryGreen : _inactiveGrey),
               label: 'Map',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline,
-                  color: _currentIndex == 3 ? _primaryGreen : _inactiveGrey),
+              icon: Icon(Icons.person_outline, color: _currentIndex == 3 ? _primaryGreen : _inactiveGrey),
               label: 'Profile',
             ),
           ],

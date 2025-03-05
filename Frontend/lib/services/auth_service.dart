@@ -15,7 +15,7 @@ class AuthService {
     required String district,
   }) async {
     try {
-      // Sign up the user if sign
+      // Sign up the user
       final AuthResponse response = await _supabase.auth.signUp(
         email: email,
         password: password,

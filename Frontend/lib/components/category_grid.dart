@@ -12,7 +12,7 @@ class CategoryGrid extends StatelessWidget {
     required this.onCategorySelected,
     this.selectedCategory,
   });
-// context
+
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
@@ -35,9 +35,7 @@ class CategoryGrid extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected
-                      ? Colors.blue.withOpacity(0.2)
-                      : Colors.grey.withOpacity(0.1),
+                  color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
                 ),
                 padding: const EdgeInsets.all(12),
                 child: Text(

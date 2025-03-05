@@ -1,7 +1,7 @@
 // lib/models/crop.dart
 class Crop {
   final int id;
-  final String name; //crop details
+  final String name;
   final double demand;
   final bool isFavorited;
   final String category;
