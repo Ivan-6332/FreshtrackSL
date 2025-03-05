@@ -25,9 +25,13 @@ class AppLocalizations {
       'highlights': 'Highlights',
       'favorites': 'Favorites',
       'search': 'Search...',
+      'todaysHighlights': 'Today\'s Highlights',
+      'yourFavorites': 'Your Favorites',
+      'explore': 'Explore',
+      'mapTabContent': 'Map Tab Content',
     },
     'si': {
-      'username': 'පකයා',
+      'username': '[සිංහල] Username',
       'email': '[සිංහල] Email',
       'language': 'භාෂාව',
       'lightTheme': '[සිංහල] Light Theme',
@@ -41,6 +45,10 @@ class AppLocalizations {
       'highlights': '[සිංහල] Highlights',
       'favorites': '[සිංහල] Favorites',
       'search': '[සිංහල] Search...',
+      'todaysHighlights': '[සිංහල] Today\'s Highlights',
+      'yourFavorites': '[සිංහල] Your Favorites',
+      'explore': '[සිංහල] Explore',
+      'mapTabContent': '[සිංහල] Map Tab Content',
     },
     'ta': {
       'username': '[தமிழ்] Username',
@@ -57,6 +65,10 @@ class AppLocalizations {
       'highlights': '[தமிழ்] Highlights',
       'favorites': '[தமிழ்] Favorites',
       'search': '[தமிழ்] Search...',
+      'todaysHighlights': '[தமிழ்] Today\'s Highlights',
+      'yourFavorites': '[தமிழ்] Your Favorites',
+      'explore': '[தமிழ்] Explore',
+      'mapTabContent': '[தமிழ்] Map Tab Content',
     },
   };
 
