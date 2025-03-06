@@ -5,6 +5,7 @@ import '../../components/search_bar.dart';
 import '../../components/crop_card.dart';
 import '../../components/category_grid.dart';
 import '../../data/app_data.dart';
+import '../config/app_localizations.dart';
 
 class ExploreTab extends StatefulWidget {
   const ExploreTab({super.key});
@@ -37,6 +38,8 @@ class _ExploreTabState extends State<ExploreTab> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+
     final filteredCrops = selectedCategory != null
         ? crops.where((crop) => crop.category == selectedCategory).toList()
         : crops;

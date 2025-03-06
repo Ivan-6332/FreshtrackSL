@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../models/crop.dart';
 import 'crop_card.dart';
+import '../config/app_localizations.dart';
 
 class Highlights extends StatelessWidget {
   final List<Crop> crops;
@@ -15,6 +16,8 @@ class Highlights extends StatelessWidget {
 
     final highestDemand = sortedCrops.first;
     final lowestDemand = sortedCrops.last;
+
+    final localizations = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -39,9 +42,9 @@ class Highlights extends StatelessWidget {
               children: [
                 Icon(Icons.trending_up, color: Colors.green.shade700),
                 const SizedBox(width: 8),
-                const Text(
-                  'Highlights',
-                  style: TextStyle(
+                Text(
+                  localizations.get('highlights'),
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
