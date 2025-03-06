@@ -5,7 +5,7 @@ class SupabaseService {
   factory SupabaseService() => _instance;
   SupabaseService._internal();
 
-  late final SupabaseClient _supabaseClient;
+  SupabaseClient? _supabaseClient;
 
   Future<void> initialize(String supabaseUrl, String supabaseAnonKey) async {
     await Supabase.initialize(
@@ -15,5 +15,10 @@ class SupabaseService {
     _supabaseClient = Supabase.instance.client;
   }
 
-  SupabaseClient get client => _supabaseClient;
+  SupabaseClient get client {
+    if (_supabaseClient == null) {
+      throw Exception("SupabaseService has not been initialized. Call initialize() first.");
+    }
+    return _supabaseClient!;
+  }
 }
