@@ -7,13 +7,29 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'config/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'providers/language_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'services/auth_service.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensures Flutter is initialized before async calls
+  WidgetsFlutterBinding
+      .ensureInitialized(); // Ensures Flutter is initialized before async calls
+
+  // Load environment variables
+  await dotenv.load();
+
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => LanguageProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
+        ChangeNotifierProvider(create: (_) => AuthService()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -24,8 +40,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<LanguageProvider>(
-      builder: (context, languageProvider, child) {
+    return Consumer2<LanguageProvider, AuthService>(
+      builder: (context, languageProvider, authService, child) {
         return MaterialApp(
           title: 'Your App Name',
           debugShowCheckedModeBanner: false,
@@ -41,7 +57,21 @@ class MyApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
-          initialRoute: '/splash',
+          home: authService.currentUser != null
+              ? const MainScreen()
+              : const SplashScreen(),
+          onGenerateRoute: (settings) {
+            if (authService.currentUser == null &&
+                settings.name != '/splash' &&
+                settings.name != '/login' &&
+                settings.name != '/signup') {
+              return MaterialPageRoute(
+                builder: (context) => const LoginScreen(),
+              );
+            }
+            // Return null to use the routes defined below
+            return null;
+          },
           routes: {
             '/splash': (context) => const SplashScreen(),
             '/login': (context) => const LoginScreen(),
