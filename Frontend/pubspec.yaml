@@ -49,8 +49,8 @@ dependencies:
   intl: any
   path_provider: any
   http: ^1.3.0
-  supabase_flutter: ^2.8.4
-  flutter_secure_storage: ^9.2.4
+  supabase_flutter: ^1.10.25
+  flutter_secure_storage: ^9.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
