@@ -1,227 +1,215 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class User {
+class CustomUser {
+  // Renamed to avoid conflict with Supabase User
   final String id;
   final String email;
-  final String? username;
-  final String? fullName;
-  final String? avatarUrl;
+  final String? firstName;
+  final String? lastName;
+  final String? phone;
+  final String? province;
+  final String? district;
 
-  User({
+  CustomUser({
     required this.id,
     required this.email,
-    this.username,
-    this.fullName,
-    this.avatarUrl,
+    this.firstName,
+    this.lastName,
+    this.phone,
+    this.province,
+    this.district,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'],
-      email: json['email'],
-      username: json['username'],
-      fullName: json['full_name'],
-      avatarUrl: json['avatar_url'],
+  factory CustomUser.fromJson(Map<String, dynamic> json) {
+    return CustomUser(
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      firstName: json['first_name']?.toString(),
+      lastName: json['last_name']?.toString(),
+      phone: json['phone']?.toString(),
+      province: json['province']?.toString(),
+      district: json['district']?.toString(),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      'first_name': firstName,
+      'last_name': lastName,
+      'phone': phone,
+      'province': province,
+      'district': district,
+    };
+  }
+
+  static Future<CustomUser> fromSupabaseUser(User? supabaseUser) async {
+    if (supabaseUser == null) {
+      throw Exception('User is null');
+    }
+
+    final supabase = Supabase.instance.client;
+
+    try {
+      final userData = await supabase
+          .from('users')
+          .select()
+          .eq('id', supabaseUser.id)
+          .single();
+
+      return CustomUser.fromJson({
+        ...userData,
+        'id': supabaseUser.id,
+        'email': supabaseUser.email ?? '',
+      });
+    } catch (e) {
+      // Return basic user if detailed data isn't available
+      return CustomUser(
+        id: supabaseUser.id,
+        email: supabaseUser.email ?? '',
+      );
+    }
   }
 }
 
 class AuthService extends ChangeNotifier {
-  final storage = const FlutterSecureStorage();
-  User? _currentUser;
+  final _supabase = Supabase.instance.client;
+  final _storage = const FlutterSecureStorage();
+  CustomUser? _currentUser;
   bool _isLoading = false;
-  String? _token;
   String? _error;
 
-  // Backend API URL - replace with your actual URL
-  final String apiUrl = 'http://192.168.1.102:3000/api';
+  AuthService() {
+    _initializeAuth();
+  }
 
-  User? get currentUser => _currentUser;
+  CustomUser? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
-  bool get isAuthenticated => _token != null;
+  bool get isAuthenticated => _currentUser != null;
   String? get error => _error;
 
-  AuthService() {
-    _loadUserFromStorage();
+  Future<void> _initializeAuth() async {
+    final session = _supabase.auth.currentSession;
+    if (session != null) {
+      try {
+        _currentUser = await CustomUser.fromSupabaseUser(session.user);
+        notifyListeners();
+      } catch (e) {
+        _error = _handleAuthError(e);
+      }
+    }
+
+    _supabase.auth.onAuthStateChange.listen((event) async {
+      if (event.event == AuthChangeEvent.signedIn && event.session != null) {
+        try {
+          _currentUser = await CustomUser.fromSupabaseUser(event.session!.user);
+          await _storage.write(
+            key: 'user_data',
+            value: jsonEncode(_currentUser!.toJson()),
+          );
+        } catch (e) {
+          _error = _handleAuthError(e);
+        }
+      } else if (event.event == AuthChangeEvent.signedOut) {
+        _currentUser = null;
+        await _storage.delete(key: 'user_data');
+      }
+      notifyListeners();
+    });
   }
 
-  // Load user data from secure storage
-  Future<void> _loadUserFromStorage() async {
-    _isLoading = true;
-    notifyListeners();
-
+  Future<void> signIn(String email, String password) async {
     try {
-      _token = await storage.read(key: 'auth_token');
-      String? userData = await storage.read(key: 'user_data');
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
 
-      if (_token != null && userData != null) {
-        _currentUser = User.fromJson(jsonDecode(userData));
+      final response = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      
+      if (response.user == null) {
+        throw Exception('Failed to sign in');
       }
+      
+      _currentUser = await CustomUser.fromSupabaseUser(response.user);
     } catch (e) {
-      _error = 'Failed to load user data';
-      _token = null;
-      _currentUser = null;
+      _error = _handleAuthError(e);
+      throw _error!;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Sign up new user
-  Future<bool> signUp({
+  Future<void> signUp({
     required String email,
     required String password,
-    String? fullName,
+    required Map<String, dynamic> userData,
   }) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
-      final response = await http.post(
-        Uri.parse('$apiUrl/auth/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'full_name': fullName,
-        }),
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _supabase.auth.signUp(
+        email: email,
+        password: password,
+        data: userData,
       );
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 201) {
-        _token = data['token'];
-        _currentUser = User.fromJson(data['user']);
-        
-        // Store user data and token
-        await storage.write(key: 'auth_token', value: _token);
-        await storage.write(key: 'user_data', value: jsonEncode(data['user']));
-        
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _error = data['message'] ?? 'Failed to sign up';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-    } catch (e) {
-      _error = 'Network error: ${e.toString()}';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  // Login user
-  Future<bool> login({required String email, required String password}) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final response = await http.post(
-        Uri.parse('$apiUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+      if (response.user != null) {
+        await _supabase.from('users').insert({
+          'id': response.user!.id,
           'email': email,
-          'password': password,
-        }),
-      );
+          'first_name': userData['first_name'],
+          'last_name': userData['last_name'],
+          'phone': userData['phone'],
+          'province': userData['province'],
+          'district': userData['district'],
+          'created_at': DateTime.now().toIso8601String(),
+        });
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        _token = data['token'];
-        _currentUser = User.fromJson(data['user']);
-        
-        // Store user data and token
-        await storage.write(key: 'auth_token', value: _token);
-        await storage.write(key: 'user_data', value: jsonEncode(data['user']));
-        
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _error = data['message'] ?? 'Failed to login';
-        _isLoading = false;
-        notifyListeners();
-        return false;
+        _currentUser = await CustomUser.fromSupabaseUser(response.user);
       }
     } catch (e) {
-      _error = 'Network error: ${e.toString()}';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  // Logout user
-  Future<void> logout() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      if (_token != null) {
-        await http.post(
-          Uri.parse('$apiUrl/auth/logout'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $_token',
-          },
-        );
-      }
-    } catch (e) {
-      // Ignore errors on logout
+      _error = _handleAuthError(e);
+      throw _error!;
     } finally {
-      // Clear local storage regardless of API response
-      await storage.delete(key: 'auth_token');
-      await storage.delete(key: 'user_data');
-      
-      _token = null;
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      await _supabase.auth.signOut();
       _currentUser = null;
+      await _storage.delete(key: 'user_data');
+    } catch (e) {
+      _error = _handleAuthError(e);
+      throw _error!;
+    } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Get current user profile from API
-  Future<void> getCurrentUser() async {
-    if (_token == null) return;
-
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final response = await http.get(
-        Uri.parse('$apiUrl/auth/me'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_token',
-        },
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        _currentUser = User.fromJson(data['user']);
-        await storage.write(key: 'user_data', value: jsonEncode(data['user']));
-      } else {
-        // Token might be invalid, clear auth data
-        _error = data['message'];
-        await logout();
-      }
-    } catch (e) {
-      _error = 'Failed to fetch user profile';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+  String _handleAuthError(dynamic error) {
+    if (error is AuthException) {
+      return error.message;
+    } else if (error is PostgrestException) {
+      return 'Database error: ${error.message}';
     }
+    return 'An unexpected error occurred';
   }
 }
