@@ -6,9 +6,20 @@ import { AppError } from '../utils/errorHandler';
 
 // Generate JWT token
 const generateToken = (user: User): string => {
-  return jwt.sign({ id: user.id, email: user.email }, 
-    process.env.JWT_SECRET as string, 
-    { expiresIn: process.env.JWT_EXPIRES_IN });
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not defined');
+  }
+  
+  const payload = {
+    id: user.id,
+    email: user.email
+  };
+  
+  return jwt.sign(
+    payload,
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' } // Using a hardcoded value for now to test
+  );
 };
 
 // Sign up new user
