@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/location_data.dart';
+import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -22,12 +23,10 @@ class _SignupScreenState extends State<SignupScreen>
   static const Color _hintGrey = Color(0xFFAAAAAA); // Subtle grey for hints
 
   final _formKey = GlobalKey<FormState>();
-  final _authService = AuthService();
   String? _selectedProvince;
   String? _selectedDistrict;
   List<String> _districts = [];
   bool _isPasswordVisible = false;
-  bool _isLoading = false;
 
   // Animation controller
   late AnimationController _animationController;
@@ -38,6 +37,7 @@ class _SignupScreenState extends State<SignupScreen>
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -56,10 +56,10 @@ class _SignupScreenState extends State<SignupScreen>
   @override
   void dispose() {
     _animationController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
@@ -100,34 +100,40 @@ class _SignupScreenState extends State<SignupScreen>
     return null;
   }
 
-  Future<void> _signUp() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+  Future<void> _handleSignUp() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      try {
-        await _authService.signUp(
-          email: _emailController.text,
-          password: _passwordController.text,
-          firstName: _firstNameController.text,
-          lastName: _lastNameController.text,
-          phoneNumber: _phoneController.text,
-          province: _selectedProvince ?? '',
-          district: _selectedDistrict ?? '',
+    setState(() => _isLoading = true);
+
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      await authService.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        userData: {
+          'first_name': _firstNameController.text.trim(),
+          'last_name': _lastNameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'province': _selectedProvince,
+          'district': _selectedDistrict,
+        },
+      );
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/main');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.red,
+          ),
         );
-
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/main');
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString())),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -627,7 +633,7 @@ class _SignupScreenState extends State<SignupScreen>
 
                       // Sign Up Button
                       ElevatedButton(
-                        onPressed: _isLoading ? null : _signUp,
+                        onPressed: _isLoading ? null : _handleSignUp,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _primaryGreen,
                           foregroundColor: _offWhite,
@@ -639,7 +645,14 @@ class _SignupScreenState extends State<SignupScreen>
                           shadowColor: _primaryGreen.withOpacity(0.5),
                         ),
                         child: _isLoading
-                            ? const CircularProgressIndicator()
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Text(
                                 'Create Account',
                                 style: TextStyle(

@@ -1,111 +1,215 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/user_model.dart';
-import 'supabase_service.dart';
 
-class AuthService {
-  final _supabase = SupabaseService().client;
+class CustomUser {
+  // Renamed to avoid conflict with Supabase User
+  final String id;
+  final String email;
+  final String? firstName;
+  final String? lastName;
+  final String? phone;
+  final String? province;
+  final String? district;
 
-  Future<UserModel> signUp({
-    required String email,
-    required String password,
-    required String firstName,
-    required String lastName,
-    String? phoneNumber,
-    required String province,
-    required String district,
-  }) async {
-    try {
-      // Sign up the user
-      final AuthResponse response = await _supabase.auth.signUp(
-        email: email,
-        password: password,
-      );
+  CustomUser({
+    required this.id,
+    required this.email,
+    this.firstName,
+    this.lastName,
+    this.phone,
+    this.province,
+    this.district,
+  });
 
-      if (response.user == null) {
-        throw Exception('Sign up failed');
-      }
-
-      // Call the stored procedure to register user
-      await _supabase.rpc('register_user', params: {
-        'user_id': response.user!.id,
-        'user_email': email,
-        'first_name': firstName,
-        'last_name': lastName,
-        'phone_number': phoneNumber,
-        'province': province,
-        'district': district,
-      });
-
-      final now = DateTime.now();
-      return UserModel(
-        id: response.user!.id,
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        phoneNumber: phoneNumber,
-        province: province,
-        district: district,
-        createdAt: now,
-        updatedAt: now,
-      );
-    } catch (e) {
-      throw Exception('Error during sign up: $e');
-    }
+  factory CustomUser.fromJson(Map<String, dynamic> json) {
+    return CustomUser(
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      firstName: json['first_name']?.toString(),
+      lastName: json['last_name']?.toString(),
+      phone: json['phone']?.toString(),
+      province: json['province']?.toString(),
+      district: json['district']?.toString(),
+    );
   }
 
-  Future<UserModel> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      'first_name': firstName,
+      'last_name': lastName,
+      'phone': phone,
+      'province': province,
+      'district': district,
+    };
+  }
+
+  static Future<CustomUser> fromSupabaseUser(User? supabaseUser) async {
+    if (supabaseUser == null) {
+      throw Exception('User is null');
+    }
+
+    final supabase = Supabase.instance.client;
+
     try {
+      final userData = await supabase
+          .from('users')
+          .select()
+          .eq('id', supabaseUser.id)
+          .single();
+
+      return CustomUser.fromJson({
+        ...userData,
+        'id': supabaseUser.id,
+        'email': supabaseUser.email ?? '',
+      });
+    } catch (e) {
+      // Return basic user if detailed data isn't available
+      return CustomUser(
+        id: supabaseUser.id,
+        email: supabaseUser.email ?? '',
+      );
+    }
+  }
+}
+
+class AuthService extends ChangeNotifier {
+  final _supabase = Supabase.instance.client;
+  final _storage = const FlutterSecureStorage();
+  CustomUser? _currentUser;
+  bool _isLoading = false;
+  String? _error;
+
+  AuthService() {
+    _initializeAuth();
+  }
+
+  CustomUser? get currentUser => _currentUser;
+  bool get isLoading => _isLoading;
+  bool get isAuthenticated => _currentUser != null;
+  String? get error => _error;
+
+  Future<void> _initializeAuth() async {
+    final session = _supabase.auth.currentSession;
+    if (session != null) {
+      try {
+        _currentUser = await CustomUser.fromSupabaseUser(session.user);
+        notifyListeners();
+      } catch (e) {
+        _error = _handleAuthError(e);
+      }
+    }
+
+    _supabase.auth.onAuthStateChange.listen((event) async {
+      if (event.event == AuthChangeEvent.signedIn && event.session != null) {
+        try {
+          _currentUser = await CustomUser.fromSupabaseUser(event.session!.user);
+          await _storage.write(
+            key: 'user_data',
+            value: jsonEncode(_currentUser!.toJson()),
+          );
+        } catch (e) {
+          _error = _handleAuthError(e);
+        }
+      } else if (event.event == AuthChangeEvent.signedOut) {
+        _currentUser = null;
+        await _storage.delete(key: 'user_data');
+      }
+      notifyListeners();
+    });
+  }
+
+  Future<void> signIn(String email, String password) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-
+      
       if (response.user == null) {
-        throw Exception('Sign in failed');
+        throw Exception('Failed to sign in');
       }
-
-      final userData = await _supabase
-          .from('profiles')
-          .select()
-          .eq('id', response.user!.id)
-          .single();
-
-      // Log the sign in activity
-      await _supabase.from('user_activity_logs').insert({
-        'user_id': response.user!.id,
-        'activity_type': 'SIGN_IN',
-        'description': 'User signed in successfully'
-      });
-
-      return UserModel.fromJson(userData);
+      
+      _currentUser = await CustomUser.fromSupabaseUser(response.user);
     } catch (e) {
-      throw Exception('Error during sign in: $e');
+      _error = _handleAuthError(e);
+      throw _error!;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> signUp({
+    required String email,
+    required String password,
+    required Map<String, dynamic> userData,
+  }) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _supabase.auth.signUp(
+        email: email,
+        password: password,
+        data: userData,
+      );
+
+      if (response.user != null) {
+        await _supabase.from('users').insert({
+          'id': response.user!.id,
+          'email': email,
+          'first_name': userData['first_name'],
+          'last_name': userData['last_name'],
+          'phone': userData['phone'],
+          'province': userData['province'],
+          'district': userData['district'],
+          'created_at': DateTime.now().toIso8601String(),
+        });
+
+        _currentUser = await CustomUser.fromSupabaseUser(response.user);
+      }
+    } catch (e) {
+      _error = _handleAuthError(e);
+      throw _error!;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   Future<void> signOut() async {
-    final user = _supabase.auth.currentUser;
-    if (user != null) {
-      await _supabase.from('user_activity_logs').insert({
-        'user_id': user.id,
-        'activity_type': 'SIGN_OUT',
-        'description': 'User signed out'
-      });
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      await _supabase.auth.signOut();
+      _currentUser = null;
+      await _storage.delete(key: 'user_data');
+    } catch (e) {
+      _error = _handleAuthError(e);
+      throw _error!;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    await _supabase.auth.signOut();
   }
 
-  Future<List<String>> getDistrictsByProvince(String province) async {
-    try {
-      final response = await _supabase
-          .rpc('get_districts_by_province', params: {'p_province': province});
-
-      return (response as List).map((district) => district.toString()).toList();
-    } catch (e) {
-      throw Exception('Error fetching districts: $e');
+  String _handleAuthError(dynamic error) {
+    if (error is AuthException) {
+      return error.message;
+    } else if (error is PostgrestException) {
+      return 'Database error: ${error.message}';
     }
+    return 'An unexpected error occurred';
   }
 }
