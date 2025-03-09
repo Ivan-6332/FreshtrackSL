@@ -1,4 +1,3 @@
-// lib/components/favorites.dart
 import 'package:flutter/material.dart';
 import '../models/crop.dart';
 import 'crop_card.dart';
@@ -14,43 +13,83 @@ class Favorites extends StatelessWidget {
     final favoriteCrops = crops.where((crop) => crop.isFavorited).toList();
     final localizations = AppLocalizations.of(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.green.shade100),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      margin: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header with combined background for icon and text
+        Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Container(
             decoration: BoxDecoration(
               color: Colors.green.shade50,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.green.withOpacity(0.1),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.star, color: Colors.green.shade700),
-                const SizedBox(width: 8),
-                Text(
-                  localizations.get('favorites'),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                // Icon section
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(
+                    Icons.favorite,
+                    color: Colors.green.shade700,
+                    size: 27,
+                  ),
+                ),
+
+                // Text section
+                Padding(
+                  padding: const EdgeInsets.only(left: 0, right: 12, top: 6, bottom: 6),
+                  child: Text(
+                    localizations.get('favorites'),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                      letterSpacing: 0.2,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          ...favoriteCrops.map((crop) => CropCard(crop: crop)),
-        ],
-      ),
+        ),
+
+        // Favorite crop cards with enhanced elevation
+        ...favoriteCrops.asMap().entries.map((entry) {
+          final index = entry.key;
+          final crop = entry.value;
+          final isLast = index == favoriteCrops.length - 1;
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.green.withOpacity(0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: CropCard(crop: crop),
+              ),
+            ),
+          );
+        }).toList(),
+      ],
     );
   }
 }

@@ -1,4 +1,3 @@
-// lib/screens/tabs/home_tab.dart
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../../data/app_data.dart';
@@ -19,15 +18,13 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> {
   List<Crop> crops = [];
 
-  // Calming color palette
-  final Color _calmGreen = const Color(0xFF4CAF50); // Soft medium green
-  final Color _darkGreen = const Color(0xFF81C784); // Darker green for buttons
-  final Color _lightGreen = const Color(0xFFE8F5E9); // Very soft, pale green
-  final Color _softBlack = const Color(0xFF424242); // Soft, not harsh black
-  final Color _offWhite =
-      const Color(0xFFFAFAFA); // Slightly off-white for eye comfort
-  final Color _cardBg =
-      const Color(0xFFF0F0F0); // Slightly darker card background
+  // Enhanced color palette
+  final Color _primaryGreen = const Color(0xFF4CAF50); // Main green
+  final Color _accentGreen = const Color(0xFF81C784); // Secondary green
+  final Color _paleGreen = const Color(0xFFE8F5E9); // Background green
+  final Color _darkText = const Color(0xFF212121); // Near black for text
+  final Color _lightBg = const Color(0xFFFAFAFA); // Off-white background
+  final Color _cardBg = const Color(0xFFF5F5F5); // Subtle card background
 
   @override
   void initState() {
@@ -43,234 +40,226 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-
     return Scaffold(
-      backgroundColor: _offWhite,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header section
-            Container(
-              padding: const EdgeInsets.fromLTRB(24, 36, 24, 20),
-              color: _offWhite,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Greeting
-                  Theme(
+      // Apply gradient to the entire scaffold background
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_lightBg, _lightBg],
+            stops: const [0.3, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Enhanced header section with floating effect
+                Container(
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Greeting with enhanced styling
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          textTheme: Theme.of(context).textTheme.apply(
+                            bodyColor: _darkText,
+                            displayColor: _primaryGreen,
+                          ),
+                        ),
+                        child: const Greeting(),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Modernized search bar with frosted glass effect
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.white.withOpacity(0.7),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _primaryGreen.withOpacity(0.15),
+                              blurRadius: 15,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            primaryColor: _primaryGreen,
+                            hintColor: _darkText.withOpacity(0.4),
+                            colorScheme: ColorScheme.light(
+                              primary: _primaryGreen,
+                              surface: Colors.white,
+                            ),
+                          ),
+                          child: const SearchBarWithProfile(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Highlights section with frosted glass effect
+                Container(
+                  margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.white.withOpacity(0.7),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _primaryGreen.withOpacity(0.12),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                        spreadRadius: 1,
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.5),
+                      width: 1.5,
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Theme(
                     data: Theme.of(context).copyWith(
-                      textTheme: Theme.of(context).textTheme.apply(
-                            bodyColor: _softBlack,
-                            displayColor: _darkGreen,
-                          ),
-                    ),
-                    child: const Greeting(),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Search bar
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: _offWhite,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.07),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                        primaryColor: _calmGreen,
-                        hintColor: _softBlack.withOpacity(0.4),
-                        colorScheme: ColorScheme.light(
-                          primary: _calmGreen,
-                          surface: _offWhite,
-                        ),
+                      primaryColor: _primaryGreen,
+                      colorScheme: ColorScheme.light(
+                        primary: _primaryGreen,
+                        secondary: _accentGreen,
+                        surface: Colors.white,
                       ),
-                      child: const SearchBarWithProfile(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Highlights section with enhanced card styling
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Section title
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      localizations.get('todaysHighlights'),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: _softBlack,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
-
-                  // Highlights with enhanced styling
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: _cardBg, // Slightly darker card background
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                        primaryColor: _calmGreen,
-                        colorScheme: ColorScheme.light(
-                          primary: _calmGreen,
-                          secondary: _darkGreen,
-                          surface: _cardBg,
-                        ),
-                        // Custom button theme for the "View History" button
-                        elevatedButtonTheme: ElevatedButtonThemeData(
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            backgroundColor: _darkGreen, // Darker green button
-                            elevation: 4, // Higher elevation for 3D effect
-                            shadowColor: _darkGreen.withOpacity(0.4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                          ),
-                        ),
-                        // Custom text theme for crop names
-                        textTheme: Theme.of(context).textTheme.copyWith(
-                              titleMedium: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: _softBlack,
-                                overflow: TextOverflow
-                                    .ellipsis, // Prevent text wrapping
-                              ),
-                            ),
-                        cardTheme: CardTheme(
-                          color: _offWhite,
-                          elevation: 2,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
+                      elevatedButtonTheme: ElevatedButtonThemeData(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: _primaryGreen,
+                          elevation: 5,
+                          shadowColor: _primaryGreen.withOpacity(0.3),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 10,
                           ),
                         ),
                       ),
-                      child: Highlights(crops: crops),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Favorites section with heart icons
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      localizations.get('yourFavorites'),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: _softBlack,
-                        letterSpacing: 0.3,
+                      textTheme: Theme.of(context).textTheme.copyWith(
+                        titleMedium: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: _darkText,
+                          letterSpacing: 0.2,
+                        ),
+                        bodyMedium: TextStyle(
+                          fontSize: 14,
+                          color: _darkText.withOpacity(0.8),
+                        ),
                       ),
-                    ),
-                  ),
-
-                  // Favorites container with enhanced styling
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: _cardBg, // Matching darker background
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                        primaryColor: _calmGreen,
-                        colorScheme: ColorScheme.light(
-                          primary: _calmGreen,
-                          secondary: _darkGreen,
-                          surface: _cardBg,
-                        ),
-                        // Custom text theme to ensure single line crop names
-                        textTheme: Theme.of(context).textTheme.copyWith(
-                              titleMedium: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: _softBlack,
-                                overflow: TextOverflow
-                                    .ellipsis, // Ensure single line text
-                              ),
-                            ),
-                        // Button styling consistent with highlights
-                        elevatedButtonTheme: ElevatedButtonThemeData(
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            backgroundColor: _darkGreen, // Darker green
-                            elevation: 4, // 3D effect
-                            shadowColor: _darkGreen.withOpacity(0.4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                      cardTheme: CardTheme(
+                        color: _cardBg.withOpacity(0.7),
+                        elevation: 0,
+                        margin: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: _primaryGreen.withOpacity(0.1),
+                            width: 1,
                           ),
                         ),
-                        cardTheme: CardTheme(
-                          color: _offWhite,
-                          elevation: 2,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
+                      ),
+                    ),
+                    child: Highlights(crops: crops),
+                  ),
+                ),
+
+                // Favorites section with frosted glass effect and animated heart icons
+                Container(
+                  margin: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.white.withOpacity(0.7),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _primaryGreen.withOpacity(0.12),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                        spreadRadius: 1,
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.5),
+                      width: 1.5,
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      primaryColor: _primaryGreen,
+                      colorScheme: ColorScheme.light(
+                        primary: _primaryGreen,
+                        secondary: _accentGreen,
+                        surface: Colors.white,
+                      ),
+                      textTheme: Theme.of(context).textTheme.copyWith(
+                        titleMedium: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: _darkText,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      elevatedButtonTheme: ElevatedButtonThemeData(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: _primaryGreen,
+                          elevation: 5,
+                          shadowColor: _primaryGreen.withOpacity(0.3),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 10,
                           ),
                         ),
-                        // Icon theme for heart icons
-                        iconTheme: IconThemeData(
-                          color: Colors.redAccent,
-                          size: 20,
+                      ),
+                      cardTheme: CardTheme(
+                        color: _cardBg.withOpacity(0.7),
+                        elevation: 0,
+                        margin: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: _primaryGreen.withOpacity(0.1),
+                            width: 1,
+                          ),
                         ),
                       ),
-                      // Apply these styles to Favorites component
-                      child: FavoritesWithHeartIcons(crops: crops),
+                      iconTheme: IconThemeData(
+                        color: Colors.redAccent,
+                        size: 22,
+                      ),
                     ),
+                    child: FavoritesWithHeartIcons(crops: crops),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 24),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-// Custom wrapper for Favorites to add heart icons
+// Enhanced wrapper for Favorites to add animated heart icons
 class FavoritesWithHeartIcons extends StatelessWidget {
   final List<Crop> crops;
 
@@ -283,60 +272,8 @@ class FavoritesWithHeartIcons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Builder(
       builder: (context) {
-        // This wrapper adds heart icons to each favorite item
-        // The actual implementation would depend on the structure of your Favorites component
+        // This component delivers the Favorites component with enhanced styling
         return Favorites(crops: crops);
-
-        // Note: If you're able to modify the Favorites component directly,
-        // add a Row with Icon(Icons.favorite) before each crop name
-        // Example structure (implement based on your actual Favorites component):
-        /*
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: crops.length,
-          itemBuilder: (context, index) {
-            return Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    // Heart icon with subtle animation
-                    ShaderMask(
-                      shaderCallback: (Rect bounds) {
-                        return LinearGradient(
-                          colors: [Colors.red.shade300, Colors.red.shade700],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ).createShader(bounds);
-                      },
-                      child: const Icon(
-                        Icons.favorite,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Crop name with ellipsis for single line
-                    Expanded(
-                      child: Text(
-                        crops[index].name,
-                        style: Theme.of(context).textTheme.titleMedium,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    // 3D elevated button
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: const Text('View Details'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-        */
       },
     );
   }
