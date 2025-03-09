@@ -12,9 +12,6 @@
 .swiftpm/
 migrate_working_dir/
 
-# ENV Files
-*.env
-
 # IntelliJ related
 *.iml
 *.ipr
@@ -46,3 +43,16 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Node modules
+node_modules/
+
+# TypeScript output
+/dist
+
+# npm package lock files (optional, depending on preference)
+package-lock.json
+yarn.lock
+
+# Operating system specific files
+Thumbs.db
