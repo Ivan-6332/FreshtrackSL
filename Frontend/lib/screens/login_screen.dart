@@ -193,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 decoration: const BoxDecoration(
                                   image: DecorationImage(
                                     image: AssetImage(
-                                        'assets/images/NEW_NAME_LOGO.jpg'),
+                                        'assets/images/NEW_NAME_LOGO.png'),
                                     fit: BoxFit.contain,
                                   ),
                                 ),
