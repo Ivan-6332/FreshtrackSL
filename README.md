@@ -32,3 +32,4 @@ Cloud Computing - AWS
 
 Application is under development! 🏗️  
 Please wait for a Release! 💫
+Coming soon...
