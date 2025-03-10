@@ -9,42 +9,56 @@ class HelpSupportScreen extends StatelessWidget {
     if (await canLaunch(url)) {
       await launch(url);
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
+    // Added colors from ExploreTab
+    final Color _paleGreen = const Color(0xFFE8F5E9); // Background green
+    final Color _lightBg = const Color(0xFFFAFAFA); // Off-white background
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Help & Support'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          ListTile(
-            leading: const Icon(Icons.play_circle),
-            title: const Text('How to use the App?'),
-            onTap: () => _launchURL('https://youtube.com/your-tutorial-video'),
+      body: Container(
+        // Added gradient background same as ExploreTab
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_paleGreen, _lightBg],
+            stops: const [0.3, 1.0],
           ),
-          const Divider(height: 32),
-          const Text(
-            'Government Agencies',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+        ),
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            ListTile(
+              leading: const Icon(Icons.play_circle),
+              title: const Text('How to use the App?'),
+              onTap: () => _launchURL('https://youtube.com/your-tutorial-video'),
             ),
-            //padding: EdgeInsets.symmetric(vertical: 8),
-          ),
-          const ListTile(
-            title: Text('Agriculture Department'),
-            subtitle: Text('Hotline: 1920'),
-          ),
-          const ListTile(
-            title: Text('Ministry of Agriculture'),
-            subtitle: Text('Phone: 011-2869553'),
-          ),
-          // Add more agency contacts as needed
-        ],
+            const Divider(height: 32),
+            const Text(
+              'Government Agencies',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              //padding: EdgeInsets.symmetric(vertical: 8),
+            ),
+            const ListTile(
+              title: Text('Agriculture Department'),
+              subtitle: Text('Hotline: 1920'),
+            ),
+            const ListTile(
+              title: Text('Ministry of Agriculture'),
+              subtitle: Text('Phone: 011-2869553'),
+            ),
+            // Add more agency contacts as needed
+          ],
+        ),
       ),
     );
   }
