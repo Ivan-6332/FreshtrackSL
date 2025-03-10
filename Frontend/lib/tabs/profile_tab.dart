@@ -79,9 +79,9 @@ class _ProfileTabState extends State<ProfileTab> {
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundColor: Colors.grey[300],
+                      backgroundColor: Colors.green[100],
                       child:
-                      const Icon(Icons.person, size: 40, color: Colors.grey),
+                      const Icon(Icons.person, size: 40, color: Colors.black12),
                     ),
                     const SizedBox(width: 16),
                     Column(
@@ -108,7 +108,7 @@ class _ProfileTabState extends State<ProfileTab> {
               const Divider(),
               // Settings List
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
                     // Language Dropdown
@@ -166,7 +166,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 45),
                     // Settings Options
                     ListTile(
                       leading: const Icon(Icons.settings),
@@ -207,7 +207,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         );
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 145),
                     // Logout Button
                     SizedBox(
                       width: double.infinity,
