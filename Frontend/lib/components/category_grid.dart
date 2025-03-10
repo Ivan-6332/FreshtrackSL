@@ -17,20 +17,23 @@ class CategoryGrid extends StatelessWidget {
     // Get screen size to make icons responsive
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Calculate appropriate sizes based on screen width
-    final double iconSize = screenWidth < 360 ? 20 : 24;
-    final double fontSize = screenWidth < 360 ? 10 : 12;
-    final double padding = screenWidth < 360 ? 8 : 12;
+    // More granular responsive sizing based on different screen widths
+    final double iconSize = _getResponsiveIconSize(screenWidth);
+    final double fontSize = _getResponsiveFontSize(screenWidth);
+    final double containerSize = _getResponsiveContainerSize(screenWidth);
+
+    // Calculate appropriate grid count based on screen width
+    final int crossAxisCount = _getResponsiveCrossAxisCount(screenWidth);
 
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
+        crossAxisCount: crossAxisCount,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        // Add childAspectRatio to control the height of grid items
-        childAspectRatio: screenWidth < 360 ? 0.9 : 1.0,
+        // Dynamic childAspectRatio based on screen size
+        childAspectRatio: screenWidth < 400 ? 0.9 : 1.0,
       ),
       itemCount: categories.length,
       itemBuilder: (context, index) {
@@ -44,6 +47,8 @@ class CategoryGrid extends StatelessWidget {
             children: [
               Flexible(
                 child: Container(
+                  width: containerSize,
+                  height: containerSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.grey.withOpacity(0.1),
@@ -60,25 +65,27 @@ class CategoryGrid extends StatelessWidget {
                       ),
                     ],
                   ),
-                  padding: EdgeInsets.all(padding),
-                  child: Transform(
-                    transform: Matrix4.identity()
-                      ..setEntry(3, 2, 0.001)
-                      ..rotateX(0.1)
-                      ..rotateY(-0.1),
-                    alignment: Alignment.center,
-                    child: Text(
-                      category['icon'],
-                      style: TextStyle(
-                        fontSize: iconSize,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black26,
-                            blurRadius: 2,
-                            offset: const Offset(1, 1),
-                          ),
-                        ],
+                  child: Center(
+                    child: Transform(
+                      transform: Matrix4.identity()
+                        ..setEntry(3, 2, 0.001)
+                        ..rotateX(0.1)
+                        ..rotateY(-0.1),
+                      alignment: Alignment.center,
+                      child: Text(
+                        category['icon'],
+                        style: TextStyle(
+                          fontSize: iconSize,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              blurRadius: 2,
+                              offset: const Offset(1, 1),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),
@@ -95,6 +102,7 @@ class CategoryGrid extends StatelessWidget {
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
@@ -102,5 +110,38 @@ class CategoryGrid extends StatelessWidget {
         );
       },
     );
+  }
+
+  // Helper methods for responsive sizing
+  double _getResponsiveIconSize(double screenWidth) {
+    if (screenWidth < 320) return 22;
+    if (screenWidth < 360) return 24;
+    if (screenWidth < 480) return 28;
+    if (screenWidth < 600) return 30;
+    return 32; // For tablets and larger screens
+  }
+
+  double _getResponsiveFontSize(double screenWidth) {
+    if (screenWidth < 320) return 11;
+    if (screenWidth < 360) return 12;
+    if (screenWidth < 480) return 14;
+    if (screenWidth < 600) return 15;
+    return 16; // For tablets and larger screens
+  }
+
+  // New method to calculate container size
+  double _getResponsiveContainerSize(double screenWidth) {
+    if (screenWidth < 320) return 48;
+    if (screenWidth < 360) return 56;
+    if (screenWidth < 480) return 64;
+    if (screenWidth < 600) return 72;
+    return 80; // For tablets and larger screens
+  }
+
+  int _getResponsiveCrossAxisCount(double screenWidth) {
+    if (screenWidth < 320) return 3;
+    if (screenWidth < 600) return 4;
+    if (screenWidth < 900) return 5;
+    return 6; // For very large screens
   }
 }

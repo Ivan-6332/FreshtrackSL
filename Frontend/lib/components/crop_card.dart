@@ -64,17 +64,17 @@ class CropCard extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Icon and Name section - content unchanged
+                    // Increased crop icon size
                     Text(
                       getCropIcon(),
-                      style: const TextStyle(fontSize: 28),
+                      style: const TextStyle(fontSize: 36),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         crop.name,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 20, // Increased crop name size
                           fontWeight: FontWeight.w500,
                           color: Colors.black87,
                         ),
@@ -102,7 +102,7 @@ class CropCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Redesigned transparent button
+                // Redesigned transparent button with smaller text
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -123,13 +123,13 @@ class CropCard extends StatelessWidget {
                         Text(
                           localizations.get('viewHistory'),
                           style: TextStyle(
-                            fontSize: 17,
+                            fontSize: 15, // Decreased button text size
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.5,
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Icon(Icons.arrow_forward, size: 16, color: Colors.black),
+                        Icon(Icons.arrow_forward, size: 14, color: Colors.black), // Slightly smaller icon
                       ],
                     ),
                   ),
