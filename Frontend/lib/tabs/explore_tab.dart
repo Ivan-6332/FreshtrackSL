@@ -66,32 +66,19 @@ class _ExploreTabState extends State<ExploreTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Search bar with matching style from HomeTab
+              // Search bar without background container
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.white.withOpacity(0.7),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _primaryGreen.withOpacity(0.15),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Theme(
-                    data: Theme.of(context).copyWith(
-                      primaryColor: _primaryGreen,
-                      hintColor: _darkText.withOpacity(0.4),
-                      colorScheme: ColorScheme.light(
-                        primary: _primaryGreen,
-                        surface: Colors.white,
-                      ),
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    primaryColor: _primaryGreen,
+                    hintColor: _darkText.withOpacity(0.4),
+                    colorScheme: ColorScheme.light(
+                      primary: _primaryGreen,
+                      surface: Colors.transparent,
                     ),
-                    child: const SearchBarWithProfile(),
                   ),
+                  child: const SearchBarWithProfile(),
                 ),
               ),
 

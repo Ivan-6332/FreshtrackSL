@@ -75,30 +75,17 @@ class _HomeTabState extends State<HomeTab> {
 
                       const SizedBox(height: 24),
 
-                      // Modernized search bar with frosted glass effect
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: Colors.white.withOpacity(0.7),
-                          boxShadow: [
-                            BoxShadow(
-                              color: _primaryGreen.withOpacity(0.15),
-                              blurRadius: 15,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: Theme(
-                          data: Theme.of(context).copyWith(
-                            primaryColor: _primaryGreen,
-                            hintColor: _darkText.withOpacity(0.4),
-                            colorScheme: ColorScheme.light(
-                              primary: _primaryGreen,
-                              surface: Colors.white,
-                            ),
+                      // Modernized search bar - Container removed
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          primaryColor: _primaryGreen,
+                          hintColor: _darkText.withOpacity(0.4),
+                          colorScheme: ColorScheme.light(
+                            primary: _primaryGreen,
+                            surface: Colors.white,
                           ),
-                          child: const SearchBarWithProfile(),
                         ),
+                        child: const SearchBarWithProfile(),
                       ),
                     ],
                   ),
