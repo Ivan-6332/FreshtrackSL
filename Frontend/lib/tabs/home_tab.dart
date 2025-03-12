@@ -18,12 +18,13 @@ class _HomeTabState extends State<HomeTab> {
   List<Crop> crops = [];
 
   // Enhanced color palette
-  final Color _primaryGreen = const Color(0xFF4CAF50); // Main green
-  final Color _accentGreen = const Color(0xFF81C784); // Secondary green
+  final Color _primaryGreen = const Color(0xFF1B5E20); // Dark green
+  final Color _darkBackground = const Color(0xFF000000); // Black background
+  final Color _lightText = const Color(0xFFFFFFFF); // White text
+
+  // Added these colors from ExploreTab
   final Color _paleGreen = const Color(0xFFE8F5E9); // Background green
-  final Color _darkText = const Color(0xFF212121); // Near black for text
   final Color _lightBg = const Color(0xFFFAFAFA); // Off-white background
-  final Color _cardBg = const Color(0xFFF5F5F5); // Subtle card background
 
   @override
   void initState() {
@@ -40,13 +41,13 @@ class _HomeTabState extends State<HomeTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Apply gradient to the entire scaffold background
+      // Applied gradient background from ExploreTab instead of solid black
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [_lightBg, _lightBg],
+            colors: [_paleGreen, _lightBg],
             stops: const [0.3, 1.0],
           ),
         ),
@@ -56,18 +57,18 @@ class _HomeTabState extends State<HomeTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Enhanced header section with floating effect
+                // Enhanced header section with dark theme
                 Container(
-                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Greeting with enhanced styling
+                      // Greeting with white text
                       Theme(
                         data: Theme.of(context).copyWith(
                           textTheme: Theme.of(context).textTheme.apply(
-                            bodyColor: _darkText,
-                            displayColor: _primaryGreen,
+                            bodyColor: _lightText,
+                            displayColor: _lightText,
                           ),
                         ),
                         child: const Greeting(),
@@ -75,14 +76,14 @@ class _HomeTabState extends State<HomeTab> {
 
                       const SizedBox(height: 24),
 
-                      // Modernized search bar - Container removed
+                      // Modernized search bar with dark theme
                       Theme(
                         data: Theme.of(context).copyWith(
                           primaryColor: _primaryGreen,
-                          hintColor: _darkText.withOpacity(0.4),
-                          colorScheme: ColorScheme.light(
+                          hintColor: _lightText.withOpacity(0.4),
+                          colorScheme: ColorScheme.dark(
                             primary: _primaryGreen,
-                            surface: Colors.white,
+                            surface: _darkBackground,
                           ),
                         ),
                         child: const SearchBarWithProfile(),
@@ -91,73 +92,31 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 12), // Reduced gap between search bar and highlights
 
-                // Highlights section with frosted glass effect
+                // Highlights section with dark theme and wider width
                 Container(
-                  margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.white.withOpacity(0.7),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _primaryGreen.withOpacity(0.12),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                        spreadRadius: 1,
-                      ),
-                    ],
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.5),
-                      width: 1.5,
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(20),
+                  margin: const EdgeInsets.fromLTRB(12, 0, 12, 16), // Reduced horizontal margins
+                  padding: const EdgeInsets.all(16), // Smaller padding to maximize content space
+                  width: double.infinity, // Ensure it takes full width
                   child: Theme(
                     data: Theme.of(context).copyWith(
                       primaryColor: _primaryGreen,
-                      colorScheme: ColorScheme.light(
+                      colorScheme: ColorScheme.dark(
                         primary: _primaryGreen,
-                        secondary: _accentGreen,
-                        surface: Colors.white,
-                      ),
-                      elevatedButtonTheme: ElevatedButtonThemeData(
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: _primaryGreen,
-                          elevation: 5,
-                          shadowColor: _primaryGreen.withOpacity(0.3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 10,
-                          ),
-                        ),
+                        secondary: Colors.greenAccent,
+                        surface: _darkBackground,
                       ),
                       textTheme: Theme.of(context).textTheme.copyWith(
                         titleMedium: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: _darkText,
+                          color: _lightText,
                           letterSpacing: 0.2,
                         ),
                         bodyMedium: TextStyle(
                           fontSize: 14,
-                          color: _darkText.withOpacity(0.8),
-                        ),
-                      ),
-                      cardTheme: CardTheme(
-                        color: _cardBg.withOpacity(0.7),
-                        elevation: 0,
-                        margin: const EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(
-                            color: _primaryGreen.withOpacity(0.1),
-                            width: 1,
-                          ),
+                          color: _lightText.withOpacity(0.8),
                         ),
                       ),
                     ),
@@ -165,72 +124,26 @@ class _HomeTabState extends State<HomeTab> {
                   ),
                 ),
 
-                // Favorites section with frosted glass effect and animated heart icons
+                // Favorites section with dark theme and wider width
                 Container(
-                  margin: const EdgeInsets.fromLTRB(24, 0, 24, 40),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.white.withOpacity(0.7),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _primaryGreen.withOpacity(0.12),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                        spreadRadius: 1,
-                      ),
-                    ],
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.5),
-                      width: 1.5,
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(20),
+                  margin: const EdgeInsets.fromLTRB(12, 0, 12, 32), // Reduced horizontal margins
+                  padding: const EdgeInsets.all(16), // Smaller padding to maximize content space
+                  width: double.infinity, // Ensure it takes full width
                   child: Theme(
                     data: Theme.of(context).copyWith(
                       primaryColor: _primaryGreen,
-                      colorScheme: ColorScheme.light(
+                      colorScheme: ColorScheme.dark(
                         primary: _primaryGreen,
-                        secondary: _accentGreen,
-                        surface: Colors.white,
+                        secondary: Colors.greenAccent,
+                        surface: _darkBackground,
                       ),
                       textTheme: Theme.of(context).textTheme.copyWith(
                         titleMedium: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: _darkText,
+                          color: _lightText,
                           letterSpacing: 0.2,
                         ),
-                      ),
-                      elevatedButtonTheme: ElevatedButtonThemeData(
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: _primaryGreen,
-                          elevation: 5,
-                          shadowColor: _primaryGreen.withOpacity(0.3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 10,
-                          ),
-                        ),
-                      ),
-                      cardTheme: CardTheme(
-                        color: _cardBg.withOpacity(0.7),
-                        elevation: 0,
-                        margin: const EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(
-                            color: _primaryGreen.withOpacity(0.1),
-                            width: 1,
-                          ),
-                        ),
-                      ),
-                      iconTheme: IconThemeData(
-                        color: Colors.redAccent,
-                        size: 22,
                       ),
                     ),
                     child: FavoritesWithHeartIcons(crops: crops),
