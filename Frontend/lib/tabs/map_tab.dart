@@ -17,14 +17,15 @@ class _MapTabState extends State<MapTab> {
   bool isDownloading = false;
   String? errorMessage;
 
-  // Enhanced color palette - matching with ExploreTab
-  final Color _primaryGreen = const Color(0xFF4CAF50); // Main green
+  // Enhanced color palette - matching with HomeTab
+  final Color _primaryGreen = const Color(0xFF1B5E20); // Dark green from HomeTab
   final Color _accentGreen = const Color(0xFF81C784); // Secondary green
   final Color _paleGreen = const Color(0xFFE8F5E9); // Background green
   final Color _darkText = const Color(0xFF212121); // Near black for text
   final Color _lightBg = const Color(0xFFFAFAFA); // Off-white background
-  final Color _darkGreen = const Color(0xFF004D2A); // Keeping the dark green for sections
+  final Color _darkGreen = const Color(0xFF004D2A); // Darker green for accents
   final Color _lightGreen = const Color(0xFFE8F5E9); // Very light green for buttons
+  final Color _lightText = const Color(0xFFFFFFFF); // White text
 
   final baseUrl = 'https://www.cbsl.gov.lk/sites/default/files/cbslweb_documents/statistics/pricerpt/price_report_';
   final hartiBaseUrl = 'https://www.harti.gov.lk/images/download/market_information/';
@@ -41,7 +42,7 @@ class _MapTabState extends State<MapTab> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: _primaryGreen, // Updated to match ExploreTab
+              primary: _primaryGreen,
               onPrimary: Colors.white,
             ),
           ),
@@ -147,9 +148,13 @@ class _MapTabState extends State<MapTab> {
 
   @override
   Widget build(BuildContext context) {
-    print('MapTab is building');
+    // Get the screen size for responsive design
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+
     return Scaffold(
       body: Container(
+        // Same gradient background as HomeTab
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -162,113 +167,156 @@ class _MapTabState extends State<MapTab> {
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: screenSize.width * 0.05,
+                vertical: 16,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _primaryGreen.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                  // Title card with enhanced styling
+                  _buildAnimatedCard(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            colors:[
+                              Colors.green.shade500,
+                              Colors.teal.shade400,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                         ),
-                      ],
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
-                        width: 1,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _primaryGreen.withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                    ),
-                    child: Text(
-                      'PRICE REPORTS',
-                      style: TextStyle(
-                        fontSize: 28, // Increased size
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black, // Changed to black
-                        letterSpacing: 0.3,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.sticky_note_2_outlined,
+                            color: _lightText,
+                            size: 32,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'PRICE REPORTS',
+                            style: TextStyle(
+                              fontSize: isTablet ? 32 : 26,
+                              fontWeight: FontWeight.bold,
+                              color: _lightText,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _primaryGreen.withOpacity(0.12),
-                          blurRadius: 15,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Select Date',
-                          style: TextStyle(
-                            fontSize: 24, // Increased size
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black, // Changed to black
+
+                  const SizedBox(height: 24),
+
+                  // Date selector with enhanced styling
+                  _buildAnimatedCard(
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 15,
+                            offset: const Offset(0, 6),
                           ),
+                        ],
+                        border: Border.all(
+                          color: _accentGreen.withOpacity(0.2),
+                          width: 1.5,
                         ),
-                        const SizedBox(height: 10),
-                        InkWell(
-                          onTap: () => _selectDate(context),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _accentGreen.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: _primaryGreen.withOpacity(0.3),
-                                width: 1,
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.calendar_month,
+                                color: _primaryGreen,
+                                size: isTablet ? 28 : 24,
                               ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  DateFormat('dd/MM/yyyy').format(selectedDate),
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: _darkText,
-                                  ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Select Date',
+                                style: TextStyle(
+                                  fontSize: isTablet ? 26 : 22,
+                                  fontWeight: FontWeight.w600,
+                                  color: _darkText,
                                 ),
-                                const SizedBox(width: 8),
-                                Icon(Icons.calendar_today, size: 20, color: Colors.black), // Changed to black
-                              ],
-                            ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Interactive date selector
+                          _buildDateSelector(isTablet),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Layout adjustments for tablets/large screens
+                  if (isTablet)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _buildReportCard(
+                            title: 'Daily Food Prices',
+                            icon: Icons.today,
+                            onDownload: () => downloadReport('daily'),
+                            source: 'CENTRAL BANK OF SRI LANKA',
+                            isTablet: isTablet,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildReportCard(
+                            title: 'Weekly Food Prices',
+                            icon: Icons.calendar_view_week,
+                            onDownload: () => downloadReport('weekly'),
+                            source: 'HARTI SRI LANKA',
+                            isTablet: isTablet,
                           ),
                         ),
                       ],
+                    )
+                  else
+                    Column(
+                      children: [
+                        _buildReportCard(
+                          title: 'Daily Food Prices',
+                          icon: Icons.today,
+                          onDownload: () => downloadReport('daily'),
+                          source: 'CENTRAL BANK OF SRI LANKA',
+                          isTablet: isTablet,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildReportCard(
+                          title: 'Weekly Food Prices',
+                          icon: Icons.calendar_view_week,
+                          onDownload: () => downloadReport('weekly'),
+                          source: 'HARTI SRI LANKA',
+                          isTablet: isTablet,
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildSection(
-                    title: 'Daily Food Prices',
-                    onDownload: () => downloadReport('daily'),
-                    source: 'CENTRAL BANK OF SRI LANKA',
-                  ),
-                  const SizedBox(height: 20),
-                  _buildSection(
-                    title: 'Weekly Food Prices',
-                    onDownload: () => downloadReport('weekly'),
-                    source: 'HARTI SRI LANKA',
-                  ),
                 ],
               ),
             ),
@@ -278,121 +326,263 @@ class _MapTabState extends State<MapTab> {
     );
   }
 
-  Widget _buildSection({
-    required String title,
-    required VoidCallback onDownload,
-    required String source,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white, // Changed to off-white
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: _primaryGreen.withOpacity(0.12),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
+  // Interactive date selector with animation
+  Widget _buildDateSelector(bool isTablet) {
+    return InkWell(
+      onTap: () => _selectDate(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 14,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_paleGreen, Colors.white],
           ),
-        ],
-        border: Border.all(
-          color: Colors.white.withOpacity(0.5),
-          width: 1.5,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: _primaryGreen.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+          border: Border.all(
+            color: _primaryGreen.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              DateFormat('dd MMMM yyyy').format(selectedDate),
+              style: TextStyle(
+                fontSize: isTablet ? 18 : 16,
+                fontWeight: FontWeight.w500,
+                color: _darkText,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              Icons.edit_calendar,
+              size: 24,
+              color: _primaryGreen,
+            ),
+          ],
         ),
       ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            decoration: BoxDecoration(
-              color: _accentGreen.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: _primaryGreen.withOpacity(0.08),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 22, // Increased size
-                fontWeight: FontWeight.bold,
-                color: Colors.black, // Changed to black
-              ),
-            ),
+    );
+  }
+
+  // Animated card wrapper
+  Widget _buildAnimatedCard({required Widget child}) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 300),
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: 0.95 + (0.05 * value),
+          child: Opacity(
+            opacity: value,
+            child: child,
           ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: isDownloading ? null : onDownload,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent, // Transparent background
-              foregroundColor: _primaryGreen, // Green text
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-                side: BorderSide(color: _primaryGreen, width: 1.5),
-              ),
-              elevation: 0, // Remove shadow
+        );
+      },
+      child: child,
+    );
+  }
+
+  // Enhanced interactive report card
+  Widget _buildReportCard({
+    required String title,
+    required IconData icon,
+    required VoidCallback onDownload,
+    required String source,
+    required bool isTablet,
+  }) {
+    return _buildAnimatedCard(
+        child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
             ),
-            icon: Icon(Icons.download, color: _primaryGreen),
-            label: Text(
-              'Download',
-              style: TextStyle(
-                fontSize: 16,
-                color: _primaryGreen,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text(
-                'Source',
-                style: TextStyle(
-                  fontSize: 16, // Increased size
-                  fontWeight: FontWeight.w500,
-                  color: _darkText,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+          // Title section with icon
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: _lightGreen, // Changed to light green
-                    borderRadius: BorderRadius.circular(20),
+                    gradient: LinearGradient(
+                        colors: [
+                          Colors.green.shade500,
+                          Colors.teal.shade400,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: _primaryGreen.withOpacity(0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        color: _primaryGreen.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
+                  child: Icon(icon, color: _lightText, size: isTablet ? 28 : 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
                   child: Text(
-                    source,
-                    style: const TextStyle(
-                      fontSize: 12,
+                    title,
+                    style: TextStyle(
+                      fontSize: isTablet ? 22 : 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black, // Changed to black
+                      color: _darkText,
                     ),
-                    textAlign: TextAlign.center,
                   ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Source information with styling
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              decoration: BoxDecoration(
+                color: _lightGreen,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.source, size: 18, color: _primaryGreen),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      source,
+                      style: TextStyle(
+                        fontSize: isTablet ? 14 : 12,
+                        fontWeight: FontWeight.w500,
+                        color: _primaryGreen,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Interactive download button
+            Center(
+              child: _buildDownloadButton(
+                onPressed: isDownloading ? null : onDownload,
+                isTablet: isTablet,
+              ),
+            ),
+
+            // Date indicator
+            if (title.contains('Daily'))
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(
+                    'For: ${DateFormat('dd MMM yyyy').format(selectedDate)}',
+                    style: TextStyle(
+                      fontSize: isTablet ? 14 : 12,
+                      fontStyle: FontStyle.italic,
+                      color: _darkText.withOpacity(0.7),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        ),
+    );
+  }
+
+  // Enhanced download button with animation
+  Widget _buildDownloadButton({
+    required VoidCallback? onPressed,
+    required bool isTablet,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(30),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 30 : 24,
+            vertical: isTablet ? 14 : 12,
+          ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: onPressed == null
+                  ? [Colors.grey.shade300, Colors.grey.shade400]
+                  : [
+                      Colors.green.shade400,
+                      Colors.teal.shade300,
+                    ],
+            ),
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: onPressed == null
+                ? []
+                : [
+              BoxShadow(
+                color: Colors.teal.shade400.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              isDownloading
+                  ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: _lightText,
+                ),
+              )
+                  : Icon(
+                Icons.download_rounded,
+                color: _lightText,
+                size: isTablet ? 24 : 20,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                isDownloading ? 'Opening...' : 'Download',
+                style: TextStyle(
+                  fontSize: isTablet ? 16 : 14,
+                  fontWeight: FontWeight.w600,
+                  color: _lightText,
                 ),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
