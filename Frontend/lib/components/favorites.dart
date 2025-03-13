@@ -66,7 +66,7 @@ class Favorites extends StatelessWidget {
                     Icon(
                       Icons.favorite,
                       color: Colors.green.shade700,
-                      size: 36, // Increased from 32 to match Highlights
+                      size: 33, // Increased from 32 to match Highlights
                     ),
 
                     const SizedBox(width: 16),
@@ -75,7 +75,7 @@ class Favorites extends StatelessWidget {
                     Text(
                       localizations.get('favorites'),
                       style: TextStyle(
-                        fontSize: 32, // Increased from 28 to match Highlights
+                        fontSize: 28, // Increased from 28 to match Highlights
                         fontWeight: FontWeight.w800,
                         color: Colors.black,
                         letterSpacing: 0.2,

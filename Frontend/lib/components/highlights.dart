@@ -71,7 +71,7 @@ class Highlights extends StatelessWidget {
                     Icon(
                       Icons.trending_up,
                       color: Colors.green.shade700,
-                      size: 36, // Increased from 32
+                      size: 33, // Increased from 32
                     ),
 
                     const SizedBox(width: 16),
@@ -80,7 +80,7 @@ class Highlights extends StatelessWidget {
                     Text(
                       localizations.get('highlights') ?? 'Highlights',
                       style: TextStyle(
-                        fontSize: 32, // Increased from 28
+                        fontSize: 28, // Increased from 28
                         fontWeight: FontWeight.w800,
                         color: Colors.black,
                         letterSpacing: 0.2,
