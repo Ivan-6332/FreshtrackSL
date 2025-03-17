@@ -3,14 +3,21 @@ import '../models/crop.dart';
 import 'crop_card.dart';
 import '../config/app_localizations.dart';
 
-class Highlights extends StatelessWidget {
+class Highlights extends StatefulWidget {
   final List<Crop> crops;
 
   const Highlights({super.key, required this.crops});
 
   @override
+  State<Highlights> createState() => _HighlightsState();
+}
+
+class _HighlightsState extends State<Highlights> {
+  bool _showDescription = false;
+
+  @override
   Widget build(BuildContext context) {
-    final sortedCrops = List<Crop>.from(crops)
+    final sortedCrops = List<Crop>.from(widget.crops)
       ..sort((a, b) => b.demand.compareTo(a.demand));
 
     final highestDemand = sortedCrops.first;
@@ -29,93 +36,163 @@ class Highlights extends StatelessWidget {
             Colors.green.shade100.withOpacity(0.6),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Unified header with lighter combined background for icon and text
           Padding(
-            padding: const EdgeInsets.only(bottom: 36), // Increased bottom padding
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.green.shade50.withOpacity(0.5), // Even lighter background
-                    Colors.green.shade100.withOpacity(0.3), // Even lighter background
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.green.withOpacity(0.15), // Slightly more pronounced shadow
-                    blurRadius: 12,
-                    offset: const Offset(0, 3),
-                    spreadRadius: 1,
+            padding: const EdgeInsets.only(bottom: 8),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _showDescription = !_showDescription;
+                });
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.green.shade50.withOpacity(0.5),
+                      Colors.green.shade100.withOpacity(0.3),
+                    ],
                   ),
-                ],
-                border: Border.all(
-                  color: Colors.green.shade200.withOpacity(0.9), // More visible border
-                  width: 1.8,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Icon in the same container as text - increased size
-                    Icon(
-                      Icons.trending_up,
-                      color: Colors.green.shade700,
-                      size: 33, // Increased from 32
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                      spreadRadius: 1,
                     ),
+                  ],
+                  border: Border.all(
+                    color: Colors.green.shade200.withOpacity(0.9),
+                    width: 1.5,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Icon with reduced size
+                          Icon(
+                            Icons.trending_up,
+                            color: Colors.green.shade700,
+                            size: 27,
+                          ),
 
-                    const SizedBox(width: 16),
+                          const SizedBox(width: 10),
 
-                    // Text section with increased font size
-                    Text(
-                      localizations.get('highlights') ?? 'Highlights',
-                      style: TextStyle(
-                        fontSize: 28, // Increased from 28
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black,
-                        letterSpacing: 0.2,
-                        shadows: [
-                          Shadow(
-                            offset: const Offset(0, 1),
-                            blurRadius: 2,
-                            color: Colors.green.withOpacity(0.2),
+                          // Text section with reduced font size
+                          Text(
+                            localizations.get('highlights') ?? 'Highlights',
+                            style: TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black,
+                              letterSpacing: 0.2,
+                              shadows: [
+                                Shadow(
+                                  offset: const Offset(0, 1),
+                                  blurRadius: 2,
+                                  color: Colors.green.withOpacity(0.2),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+
+                      // Toggle icon
+                      Icon(
+                        _showDescription ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                        color: Colors.green.shade700,
+                        size: 27,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
 
-          // Highest demand label with emoji
+          // Animated collapsible description text
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: _showDescription ? null : 0,
+            child: AnimatedOpacity(
+              opacity: _showDescription ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              child: _showDescription ? Container(
+                margin: const EdgeInsets.only(bottom: 16, left: 2, right: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.green.shade100.withOpacity(0.4),
+                      Colors.green.shade50.withOpacity(0.3),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.green.shade300.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Colors.green.shade800,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'In here you can see the crop that have the highest demand and the lowest demand today.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.green.shade800,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ) : const SizedBox.shrink(),
+            ),
+          ),
+
+          // Highest demand label with reduced sizing
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 8),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
               child: Row(
                 children: [
                   Icon(
                     Icons.arrow_circle_up,
                     color: Colors.green.shade700,
-                    size: 28,
+                    size: 20,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Text(
                     'Highest Demand',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Colors.green.shade800,
                       letterSpacing: 0.5,
@@ -128,41 +205,40 @@ class Highlights extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Removed the fire emoji and Spacer
                 ],
               ),
             ),
           ),
 
-          // Highest demand crop card
+          // Highest demand crop card - slightly reduced scale
           Padding(
-            padding: const EdgeInsets.only(bottom: 40), // Increased padding to 40
+            padding: const EdgeInsets.only(bottom: 24),
             child: Transform.scale(
-              scale: 1.05,
+              scale: 0.9,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(14),
                 child: CropCard(crop: highestDemand),
               ),
             ),
           ),
 
-          // Lowest demand label with emoji
+          // Lowest demand label with reduced sizing
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 8),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
               child: Row(
                 children: [
                   Icon(
                     Icons.arrow_circle_down,
                     color: Colors.red.shade700,
-                    size: 28,
+                    size: 20,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Text(
                     'Lowest Demand',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Colors.red.shade800,
                       letterSpacing: 0.5,
@@ -175,23 +251,22 @@ class Highlights extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Removed the chart decreasing emoji and Spacer
                 ],
               ),
             ),
           ),
 
-          // Lowest demand crop card
+          // Lowest demand crop card - reduced scale
           Transform.scale(
-            scale: 1.05,
+            scale: 0.9,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(14),
               child: CropCard(crop: lowestDemand),
             ),
           ),
 
-          // Extra space after the component
-          const SizedBox(height: 20),
+          // Reduced extra space
+          const SizedBox(height: 14),
         ],
       ),
     );
