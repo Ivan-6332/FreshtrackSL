@@ -56,6 +56,9 @@ class _ProfileTabState extends State<ProfileTab> {
     _selectedLanguage =
         currentLocale.languageCode; // Update the selected language
 
+    // Get screen width for responsive design
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
         body: Container(
         // Updated gradient background same as ExploreTab
@@ -171,31 +174,38 @@ class _ProfileTabState extends State<ProfileTab> {
     Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-    // Styled dynamic text for Language
+    // Updated to match account settings style
     Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    padding: const EdgeInsets.all(8),
     decoration: BoxDecoration(
     gradient: LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Colors.green.shade500, Colors.teal.shade400],
+    colors: [Colors.green[300]!, Colors.green[500]!],
     ),
-    borderRadius: BorderRadius.circular(20),
+    borderRadius: BorderRadius.circular(10),
     boxShadow: [
     BoxShadow(
-    color: Colors.grey.withOpacity(0.2),
+    color: Colors.green.withOpacity(0.3),
     spreadRadius: 1,
-    blurRadius: 2,
-    offset: const Offset(0, 1),
+    blurRadius: 3,
+    offset: const Offset(0, 2),
     ),
     ],
     ),
+    child: Icon(
+    Icons.language,
+    color: Colors.white,
+    size: 24,
+    ),
+    ),
+    SizedBox(width: 16),
+    Expanded(
     child: Text(
     localizations.get('language'),
-    style: TextStyle(
-    fontWeight: FontWeight.w600,
-    color: Colors.white,
-    fontSize: 15,
+    style: const TextStyle(
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
     ),
     ),
     ),
@@ -219,41 +229,50 @@ class _ProfileTabState extends State<ProfileTab> {
     ],
     ),
     const SizedBox(height: 24), // Increased spacing
+
     // Theme Toggle
     Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-    // Styled dynamic text for Theme (now matching Language style)
+    // Updated to match account settings style
     Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    padding: const EdgeInsets.all(8),
     decoration: BoxDecoration(
     gradient: LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Colors.green.shade500, Colors.teal.shade400],
+    colors: [Colors.green[300]!, Colors.green[500]!],
     ),
-    borderRadius: BorderRadius.circular(20),
+    borderRadius: BorderRadius.circular(10),
     boxShadow: [
     BoxShadow(
-    color: Colors.grey.withOpacity(0.2),
+    color: Colors.green.withOpacity(0.3),
     spreadRadius: 1,
-    blurRadius: 2,
-    offset: const Offset(0, 1),
+    blurRadius: 3,
+    offset: const Offset(0, 2),
     ),
     ],
     ),
+    child: Icon(
+    _isDarkMode ? Icons.dark_mode : Icons.light_mode,
+    color: Colors.white,
+    size: 24,
+    ),
+    ),
+    SizedBox(width: 16),
+    Expanded(
     child: Text(
-    // Changed text based on current theme state
     _isDarkMode ? "Dark Theme" : "Light Theme",
-    style: TextStyle(
-    fontWeight: FontWeight.w600,
-    color: Colors.white, // Matched to Language color
-    fontSize: 15,
+    style: const TextStyle(
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
     ),
     ),
     ),
-    // 3D styled switch with more space
-    Container(
+    // Fixed switch positioning
+    SizedBox(
+    width: 62,
+    child: Container(
     height: 36,
     width: 62,
     padding: const EdgeInsets.all(3),
@@ -321,43 +340,54 @@ class _ProfileTabState extends State<ProfileTab> {
     ),
     ),
     ),
+    ),
     ],
     ),
     const SizedBox(height: 24), // Increased spacing
+
     // Notifications Toggle
     Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-    // Styled dynamic text for Notifications (now matching Language style)
+    // Updated to match account settings style
     Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    padding: const EdgeInsets.all(8),
     decoration: BoxDecoration(
     gradient: LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Colors.green.shade500, Colors.teal.shade400],
+    colors: [Colors.green[300]!, Colors.green[500]!],
     ),
-    borderRadius: BorderRadius.circular(20),
+    borderRadius: BorderRadius.circular(10),
     boxShadow: [
     BoxShadow(
-    color: Colors.grey.withOpacity(0.2),
+    color: Colors.green.withOpacity(0.3),
     spreadRadius: 1,
-    blurRadius: 2,
-    offset: const Offset(0, 1),
+    blurRadius: 3,
+    offset: const Offset(0, 2),
     ),
     ],
     ),
+    child: Icon(
+    _notificationsEnabled ? Icons.notifications_active : Icons.notifications_off,
+    color: Colors.white,
+    size: 24,
+    ),
+    ),
+    SizedBox(width: 16),
+    Expanded(
     child: Text(
     localizations.get('notifications'),
-    style: TextStyle(
-    fontWeight: FontWeight.w600,
-    color: Colors.white, // Matched to Language color
-    fontSize: 15,
+    style: const TextStyle(
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
     ),
     ),
     ),
-    // 3D styled switch with more space
-    Container(
+    // Fixed switch positioning
+    SizedBox(
+    width: 62,
+    child: Container(
     height: 36,
     width: 62,
     padding: const EdgeInsets.all(3),
@@ -408,20 +438,21 @@ class _ProfileTabState extends State<ProfileTab> {
     color: Colors.black.withOpacity(0.3),
     blurRadius: 3,
     spreadRadius: 0,
-    offset: const Offset(0, 1),
+      offset: const Offset(0, 1),
     ),
     ],
     ),
-    child: Center(
-    child: Icon(
-    _notificationsEnabled ? Icons.notifications_active : Icons.notifications_off,
-    size: 16,
-      color: _notificationsEnabled ? Colors.white : Colors.grey[600],
-    ),
-    ),
+      child: Center(
+        child: Icon(
+          _notificationsEnabled ? Icons.notifications_active : Icons.notifications_off,
+          size: 16,
+          color: _notificationsEnabled ? Colors.white : Colors.grey[600],
+        ),
+      ),
     ),
     ),
     ],
+    ),
     ),
     ),
     ),
@@ -582,7 +613,7 @@ class _ProfileTabState extends State<ProfileTab> {
           },
         ),
       ),
-      const SizedBox(height: 80),
+      const SizedBox(height: 70),
       // Logout Button with 3D styling
       Container(
         width: double.infinity,
