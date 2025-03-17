@@ -11,8 +11,12 @@ class CropCard extends StatefulWidget {
   State<CropCard> createState() => _CropCardState();
 }
 
-class _CropCardState extends State<CropCard> {
+class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin {
   bool _isHovered = false;
+  late AnimationController _animationController;
+  late Animation<double> _arrowGrowAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _rotationAnimation;
 
   String getCropIcon() {
     switch (widget.crop.name.toLowerCase()) {
@@ -32,10 +36,49 @@ class _CropCardState extends State<CropCard> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+
+    // Animation for arrow growing continuously from base without reversing
+    _arrowGrowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        // Use a custom curve that grows and then resets instantly
+        curve: const _GrowAndResetCurve(),
+      ),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _rotationAnimation = Tween<double>(begin: -0.03, end: 0.03).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Start continuous animation
+    _animationController.repeat();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    // Calculate percentage of demand relative to max (200%)
-    final demandPercentage = widget.crop.demand / 200;
     final isHighDemand = widget.crop.demand > 100;
 
     return MouseRegion(
@@ -50,7 +93,7 @@ class _CropCardState extends State<CropCard> {
           curve: Curves.easeOutQuad,
           margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
           transform: _isHovered
-              ? (Matrix4.identity()..scale(1.05)) // Scale up when hovered/touched
+              ? (Matrix4.identity()..scale(1.05))
               : Matrix4.identity(),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14.0),
@@ -73,12 +116,12 @@ class _CropCardState extends State<CropCard> {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(2.0), // Border thickness
+            padding: const EdgeInsets.all(2.0),
             child: Card(
-              elevation: 0, // No elevation for the inner card
+              elevation: 0,
               margin: EdgeInsets.zero,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.0), // Rounded corners
+                borderRadius: BorderRadius.circular(12.0),
               ),
               child: Container(
                 decoration: BoxDecoration(
@@ -96,7 +139,6 @@ class _CropCardState extends State<CropCard> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Increased crop icon size
                           Text(
                             getCropIcon(),
                             style: const TextStyle(fontSize: 36),
@@ -106,138 +148,94 @@ class _CropCardState extends State<CropCard> {
                             child: Text(
                               widget.crop.name,
                               style: const TextStyle(
-                                fontSize: 20, // Increased crop name size
+                                fontSize: 20,
                                 fontWeight: FontWeight.w500,
                                 color: Colors.black87,
                               ),
                             ),
                           ),
-                          // 3D Circular progress indicator for crop demand
+                          // Responsive Dynamic Growing Arrow Animation
                           LayoutBuilder(
                             builder: (context, constraints) {
-                              // Make the circle size responsive
-                              final size = constraints.maxWidth * 0.2;
+                              // Make arrow size responsive
+                              final double containerWidth = constraints.maxWidth;
+                              final double size = MediaQuery.of(context).size.width < 600
+                                  ? containerWidth * 0.22  // Smaller screens
+                                  : containerWidth * 0.18; // Larger screens
+                              final double arrowSize = size < 62 ? size : 62;
+
                               return SizedBox(
-                                width: size < 62 ? size : 62,
-                                height: size < 62 ? size : 62,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    // Drop shadow for 3D effect
-                                    Container(
-                                      width: size < 58 ? size - 4 : 58,
-                                      height: size < 58 ? size - 4 : 58,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.2),
-                                            offset: const Offset(0, 2),
-                                            blurRadius: 4,
-                                            spreadRadius: 0,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    // Circular progress background (track)
-                                    Container(
-                                      width: size < 58 ? size - 4 : 58,
-                                      height: size < 58 ? size - 4 : 58,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        gradient: RadialGradient(
-                                          colors: [
-                                            Colors.grey.shade100,
-                                            Colors.grey.shade300,
-                                          ],
-                                          stops: const [0.7, 1.0],
-                                        ),
-                                      ),
-                                    ),
-                                    // Circular progress indicator
-                                    TweenAnimationBuilder(
-                                      tween: Tween<double>(begin: 0, end: demandPercentage),
-                                      duration: const Duration(milliseconds: 1500),
-                                      curve: Curves.easeOutQuart,
-                                      builder: (context, value, _) {
-                                        return ShaderMask(
-                                          shaderCallback: (rect) {
-                                            return SweepGradient(
-                                              startAngle: -0.5 * 3.14,
-                                              endAngle: 1.5 * 3.14,
-                                              stops: [value, value],
-                                              colors: [
-                                                isHighDemand ?
-                                                Colors.green.shade700 :
-                                                Colors.red.shade700,
-                                                Colors.transparent,
-                                              ],
-                                            ).createShader(rect);
-                                          },
+                                width: arrowSize,
+                                height: arrowSize,
+                                child: AnimatedBuilder(
+                                  animation: _animationController,
+                                  builder: (context, child) {
+                                    return Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        // Demand percentage text container
+                                        Positioned(
+                                          bottom: isHighDemand ? 2 : null,
+                                          top: isHighDemand ? null : 2,
                                           child: Container(
-                                            width: size < 58 ? size - 4 : 58,
-                                            height: size < 58 ? size - 4 : 58,
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: arrowSize * 0.1,
+                                              vertical: arrowSize * 0.03,
+                                            ),
                                             decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.white,
-                                              border: Border.all(
-                                                color: Colors.transparent,
-                                                width: 4,
+                                              color: Colors.white.withOpacity(0.8),
+                                              borderRadius: BorderRadius.circular(8),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.1),
+                                                  blurRadius: 1,
+                                                  spreadRadius: 0,
+                                                ),
+                                              ],
+                                            ),
+                                            child: Text(
+                                              '${widget.crop.demand.toStringAsFixed(1)}%',
+                                              style: TextStyle(
+                                                color: isHighDemand
+                                                    ? Colors.green.shade900
+                                                    : Colors.red.shade900,
+                                                fontSize: arrowSize * 0.21,
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                           ),
-                                        );
-                                      },
-                                    ),
-                                    // Inner circle with 3D effect
-                                    Container(
-                                      width: size < 48 ? size - 12 : 48,
-                                      height: size < 48 ? size - 12 : 48,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        gradient: RadialGradient(
-                                          colors: isHighDemand ?
-                                          [Colors.green.shade50, Colors.green.shade200] :
-                                          [Colors.red.shade50, Colors.red.shade200],
-                                          center: const Alignment(-0.3, -0.3),
-                                          focal: const Alignment(-0.5, -0.5),
-                                          focalRadius: 0.2,
                                         ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: (isHighDemand ? Colors.green : Colors.red).withOpacity(0.3),
-                                            offset: const Offset(0, 1),
-                                            blurRadius: 2,
-                                            spreadRadius: 0,
+                                        // Growing Arrow
+                                        Positioned(
+                                          bottom: isHighDemand ? arrowSize * 0.32 : null,
+                                          top: isHighDemand ? null : arrowSize * 0.32,
+                                          child: Transform(
+                                            alignment: isHighDemand ? Alignment.bottomCenter : Alignment.topCenter,
+                                            transform: Matrix4.identity()
+                                              ..setEntry(3, 2, 0.001) // perspective
+                                              ..rotateX(isHighDemand ? 0.1 : -0.1)
+                                              ..rotateY(_rotationAnimation.value)
+                                              ..scale(_scaleAnimation.value),
+                                            child: ClipRect(
+                                              child: Align(
+                                                alignment: isHighDemand ? Alignment.bottomCenter : Alignment.topCenter,
+                                                heightFactor: _arrowGrowAnimation.value,
+                                                child: CustomPaint(
+                                                  size: Size(arrowSize * 0.7, arrowSize * 0.7),
+                                                  painter: GrowingArrowPainter(
+                                                    isUpArrow: isHighDemand,
+                                                    color: isHighDemand
+                                                        ? Colors.green.shade700
+                                                        : Colors.red.shade700,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                           ),
-                                          BoxShadow(
-                                            color: Colors.white.withOpacity(0.8),
-                                            offset: const Offset(-1, -1),
-                                            blurRadius: 2,
-                                            spreadRadius: 0,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    // Demand percentage text with improved visibility
-                                    Text(
-                                      '${widget.crop.demand.toStringAsFixed(1)}%',
-                                      style: TextStyle(
-                                        color: isHighDemand ?
-                                        Colors.green.shade900 :
-                                        Colors.red.shade900,
-                                        fontSize: size < 48 ? size * 0.25 : 13,
-                                        fontWeight: FontWeight.bold,
-                                        shadows: [
-                                          Shadow(
-                                            offset: const Offset(0, 0.5),
-                                            blurRadius: 1,
-                                            color: Colors.white.withOpacity(0.5),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 ),
                               );
                             },
@@ -245,10 +243,9 @@ class _CropCardState extends State<CropCard> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      // Smaller button with same text size
                       SizedBox(
                         width: double.infinity,
-                        height: 46, // Smaller button height
+                        height: 46,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
@@ -274,19 +271,19 @@ class _CropCardState extends State<CropCard> {
                               foregroundColor: Colors.white,
                               backgroundColor: Colors.transparent,
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 10), // Reduced vertical padding
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min, // Makes the row tighter
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   localizations.get('viewHistory'),
                                   style: const TextStyle(
-                                    fontSize: 15, // Maintained the same text size
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: 0.5,
                                     color: Colors.white,
@@ -319,5 +316,126 @@ class _CropCardState extends State<CropCard> {
         ),
       ),
     );
+  }
+}
+
+// Custom curve that grows from 0 to 1 and then instantly resets
+class _GrowAndResetCurve extends Curve {
+  const _GrowAndResetCurve();
+
+  @override
+  double transformInternal(double t) {
+    // Divide the animation into segments:
+    // - 0.0-0.9: Grow from 0% to 100%
+    // - 0.9-1.0: Reset to 0% (instantly)
+    if (t < 0.9) {
+      // Scale t from 0-0.9 to 0-1 for smooth growth
+      return t / 0.9;
+    } else {
+      // Reset to 0 instantly for the remaining 10% of the animation time
+      return 0.0;
+    }
+  }
+}
+
+// Custom painter for growing arrow
+class GrowingArrowPainter extends CustomPainter {
+  final bool isUpArrow;
+  final Color color;
+
+  GrowingArrowPainter({required this.isUpArrow, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+
+    final double width = size.width;
+    final double height = size.height;
+    final double centerX = width / 2;
+    final double arrowWidth = width * 0.6;
+    final double stemWidth = width * 0.3;
+
+    // Create path for the arrow
+    final path = Path();
+    if (isUpArrow) {
+      // Up arrow - grows upward from the bottom
+      // Shadow
+      final shadowPath = Path()
+        ..moveTo(centerX - arrowWidth / 2, height * 0.5)
+        ..lineTo(centerX, height * 0.2)
+        ..lineTo(centerX + arrowWidth / 2, height * 0.5)
+        ..lineTo(centerX + stemWidth / 2, height * 0.5)
+        ..lineTo(centerX + stemWidth / 2, height * 0.8)
+        ..lineTo(centerX - stemWidth / 2, height * 0.8)
+        ..lineTo(centerX - stemWidth / 2, height * 0.5)
+        ..close();
+      canvas.drawPath(shadowPath, shadowPaint);
+
+      // Arrow
+      path.moveTo(centerX - arrowWidth / 2, height * 0.5);
+      path.lineTo(centerX, height * 0.2);
+      path.lineTo(centerX + arrowWidth / 2, height * 0.5);
+      path.lineTo(centerX + stemWidth / 2, height * 0.5);
+      path.lineTo(centerX + stemWidth / 2, height * 0.8);
+      path.lineTo(centerX - stemWidth / 2, height * 0.8);
+      path.lineTo(centerX - stemWidth / 2, height * 0.5);
+      path.close();
+    } else {
+      // Down arrow - grows downward from the top
+      // Shadow
+      final shadowPath = Path()
+        ..moveTo(centerX - arrowWidth / 2, height * 0.5)
+        ..lineTo(centerX, height * 0.8)
+        ..lineTo(centerX + arrowWidth / 2, height * 0.5)
+        ..lineTo(centerX + stemWidth / 2, height * 0.5)
+        ..lineTo(centerX + stemWidth / 2, height * 0.2)
+        ..lineTo(centerX - stemWidth / 2, height * 0.2)
+        ..lineTo(centerX - stemWidth / 2, height * 0.5)
+        ..close();
+      canvas.drawPath(shadowPath, shadowPaint);
+
+      // Arrow
+      path.moveTo(centerX - arrowWidth / 2, height * 0.5);
+      path.lineTo(centerX, height * 0.8);
+      path.lineTo(centerX + arrowWidth / 2, height * 0.5);
+      path.lineTo(centerX + stemWidth / 2, height * 0.5);
+      path.lineTo(centerX + stemWidth / 2, height * 0.2);
+      path.lineTo(centerX - stemWidth / 2, height * 0.2);
+      path.lineTo(centerX - stemWidth / 2, height * 0.5);
+      path.close();
+    }
+
+    // Draw the arrow with 3D effect
+    canvas.drawPath(path, paint);
+
+    // Add highlight to create 3D effect
+    final highlightPaint = Paint()
+      ..color = Colors.white.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+
+    final highlightPath = Path();
+    if (isUpArrow) {
+      highlightPath.moveTo(centerX - arrowWidth / 2, height * 0.5);
+      highlightPath.lineTo(centerX, height * 0.2);
+      highlightPath.lineTo(centerX + arrowWidth / 4, height * 0.35);
+      highlightPath.close();
+    } else {
+      highlightPath.moveTo(centerX - arrowWidth / 2, height * 0.5);
+      highlightPath.lineTo(centerX, height * 0.8);
+      highlightPath.lineTo(centerX + arrowWidth / 4, height * 0.65);
+      highlightPath.close();
+    }
+    canvas.drawPath(highlightPath, highlightPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant GrowingArrowPainter oldDelegate) {
+    return oldDelegate.isUpArrow != isUpArrow || oldDelegate.color != color;
   }
 }
