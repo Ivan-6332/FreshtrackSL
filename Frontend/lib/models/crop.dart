@@ -5,6 +5,7 @@ class Crop {
   final double demand;
   final bool isFavorited;
   final String category;
+  final String pic;
 
   Crop({
     required this.id,
@@ -12,6 +13,7 @@ class Crop {
     required this.demand,
     required this.isFavorited,
     required this.category,
+    required this.pic,
   });
 
   factory Crop.fromJson(Map<String, dynamic> json) {
@@ -19,8 +21,9 @@ class Crop {
       id: json['id'],
       name: json['name'],
       demand: json['demand'].toDouble(),
-      isFavorited: json['isFavorited'],
+      isFavorited: json['isFavorited'] ?? false,
       category: json['category'],
+      pic: json['pic'],
     );
   }
 }
