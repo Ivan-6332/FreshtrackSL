@@ -12,30 +12,30 @@ class CropCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
+      elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             // Crop emoji
             Container(
-              width: 50,
-              height: 50,
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                color: Colors.green.shade100,
-                borderRadius: BorderRadius.circular(8),
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
                 child: Text(
                   crop.pic,
-                  style: const TextStyle(fontSize: 24),
+                  style: const TextStyle(fontSize: 32),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             // Crop details
             Expanded(
               child: Column(
@@ -44,7 +44,7 @@ class CropCard extends StatelessWidget {
                   Text(
                     crop.name,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -52,9 +52,28 @@ class CropCard extends StatelessWidget {
                   Text(
                     crop.category,
                     style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
                     ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.trending_up,
+                        color: Colors.green.shade700,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Demand: ${crop.demand.toStringAsFixed(1)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
