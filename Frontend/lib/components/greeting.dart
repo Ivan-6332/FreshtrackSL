@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/app_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Greeting extends StatefulWidget {
   const Greeting({super.key});
@@ -11,6 +12,7 @@ class Greeting extends StatefulWidget {
 class _GreetingState extends State<Greeting> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+  String _firstName = '';
 
   @override
   void initState() {
@@ -33,6 +35,24 @@ class _GreetingState extends State<Greeting> with SingleTickerProviderStateMixin
         curve: Curves.elasticOut,
       ),
     );
+
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final userData = user.userMetadata;
+        if (userData != null && userData['first_name'] != null) {
+          setState(() {
+            _firstName = userData['first_name'];
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading user name: $e');
+    }
   }
 
   @override
@@ -149,7 +169,7 @@ class _GreetingState extends State<Greeting> with SingleTickerProviderStateMixin
               // Wrap name in a flexible container to allow line breaking on very small screens
               Flexible(
                 child: Text(
-                  "Ivan De Zoysa",
+                  _firstName.isNotEmpty ? _firstName : "there",
                   style: TextStyle(
                     fontSize: nameTextSize,
                     fontWeight: FontWeight.w800,
