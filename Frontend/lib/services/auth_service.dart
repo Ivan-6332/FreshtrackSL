@@ -56,7 +56,7 @@ class CustomUser {
 
     try {
       final userData = await supabase
-          .from('users')
+          .from('profiles')
           .select()
           .eq('id', supabaseUser.id)
           .single();
@@ -132,11 +132,11 @@ class AuthService extends ChangeNotifier {
         email: email,
         password: password,
       );
-      
+
       if (response.user == null) {
         throw Exception('Failed to sign in');
       }
-      
+
       _currentUser = await CustomUser.fromSupabaseUser(response.user);
     } catch (e) {
       _error = _handleAuthError(e);
@@ -164,17 +164,6 @@ class AuthService extends ChangeNotifier {
       );
 
       if (response.user != null) {
-        await _supabase.from('users').insert({
-          'id': response.user!.id,
-          'email': email,
-          'first_name': userData['first_name'],
-          'last_name': userData['last_name'],
-          'phone': userData['phone'],
-          'province': userData['province'],
-          'district': userData['district'],
-          'created_at': DateTime.now().toIso8601String(),
-        });
-
         _currentUser = await CustomUser.fromSupabaseUser(response.user);
       }
     } catch (e) {
