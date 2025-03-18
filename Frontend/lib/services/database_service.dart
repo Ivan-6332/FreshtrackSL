@@ -6,9 +6,7 @@ class DatabaseService {
   // Get all crops with their demand
   Future<List<Map<String, dynamic>>> getCropsWithDemand() async {
     try {
-      final response = await _supabase
-          .from('crop')
-          .select('''
+      final response = await _supabase.from('crop').select('''
             crop_id,
             crop_name,
             crop_category,
@@ -16,16 +14,28 @@ class DatabaseService {
             demand!inner (
               demand
             )
-          ''')
-          .order('crop_name');
+          ''').order('crop_name');
 
-      return response.map((crop) => {
-        'id': crop['crop_id'],
-        'name': crop['crop_name'],
-        'category': crop['crop_category'],
-        'pic': crop['crop_pic'],
-        'demand': crop['demand'][0]['demand'].toDouble(),
-      }).toList();
+      List<Map<String, dynamic>> result = [];
+
+      for (var crop in response) {
+        if (crop is Map<String, dynamic>) {
+          result.add({
+            'id': crop['crop_id'],
+            'name': crop['crop_name'],
+            'category': crop['crop_category'],
+            'pic': crop['crop_pic'],
+            'demand': (crop['demand'] is List && crop['demand'].isNotEmpty)
+                ? (crop['demand'][0]['demand'] is num
+                    ? crop['demand'][0]['demand'].toDouble()
+                    : 0.0)
+                : 0.0,
+            'isFavorited': false,
+          });
+        }
+      }
+
+      return result;
     } catch (e) {
       print('Error fetching crops: $e');
       rethrow;
@@ -38,29 +48,41 @@ class DatabaseService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return [];
 
-      final response = await _supabase
-          .from('favorites')
-          .select('''
-            crop!inner (
+      final response = await _supabase.from('favorites').select('''
+            crop_id,
+            crop:crop_id (
               crop_id,
               crop_name,
               crop_category,
               crop_pic,
-              demand!inner (
+              demand:demand (
                 demand
               )
             )
-          ''')
-          .eq('user_id', userId);
+          ''').eq('user_id', userId);
 
-      return response.map((favorite) => {
-        'id': favorite['crop']['crop_id'],
-        'name': favorite['crop']['crop_name'],
-        'category': favorite['crop']['crop_category'],
-        'pic': favorite['crop']['crop_pic'],
-        'demand': favorite['crop']['demand'][0]['demand'].toDouble(),
-        'isFavorited': true,
-      }).toList();
+      List<Map<String, dynamic>> result = [];
+
+      for (var favorite in response) {
+        if (favorite is Map<String, dynamic> &&
+            favorite['crop'] is Map<String, dynamic>) {
+          var crop = favorite['crop'];
+          result.add({
+            'id': crop['crop_id'],
+            'name': crop['crop_name'],
+            'category': crop['crop_category'],
+            'pic': crop['crop_pic'],
+            'demand': (crop['demand'] is List && crop['demand'].isNotEmpty)
+                ? (crop['demand'][0]['demand'] is num
+                    ? crop['demand'][0]['demand'].toDouble()
+                    : 0.0)
+                : 0.0,
+            'isFavorited': true,
+          });
+        }
+      }
+
+      return result;
     } catch (e) {
       print('Error fetching favorites: $e');
       rethrow;
@@ -76,13 +98,19 @@ class DatabaseService {
           .order('crop_category');
 
       // Get unique categories and add emojis
-      final uniqueCategories = response
-          .map((item) => item['crop_category'] as String)
-          .toSet()
-          .toList()
-        ..sort();
+      Set<String> uniqueCategories = {};
 
-      return uniqueCategories.map((category) {
+      for (var item in response) {
+        if (item is Map<String, dynamic> && item['crop_category'] is String) {
+          uniqueCategories.add(item['crop_category']);
+        }
+      }
+
+      List<String> sortedCategories = uniqueCategories.toList()..sort();
+
+      List<Map<String, dynamic>> result = [];
+
+      for (var category in sortedCategories) {
         String emoji = '🌱'; // Default emoji
         switch (category) {
           case 'leafy greens':
@@ -110,16 +138,17 @@ class DatabaseService {
             emoji = '🌾';
             break;
         }
-        return {
+
+        result.add({
           'name': category,
           'icon': emoji,
-        };
-      }).toList();
+        });
+      }
+
+      return result;
     } catch (e) {
       print('Error fetching categories: $e');
       rethrow;
     }
   }
 }
-
-LOL
