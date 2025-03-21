@@ -95,3 +95,6 @@ def validate_weekly_distribution(monthly_df, weekly_df):
 
 # Generate weekly predictions
 weekly_df = month_to_week_predictions(df)
+
+# Validate our weekly distribution
+validation = validate_weekly_distribution(df, weekly_df)
