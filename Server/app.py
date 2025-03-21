@@ -75,6 +75,16 @@ def month_to_week_predictions(df):
                     'demand': weekly_demand
                 })
 
+                # Calculate the max demand for percentage conversion
+                max_demand = max(item['raw_demand'] for item in crop_weekly_demands)
+
+                for item in crop_weekly_demands:
+                    percentage_demand = (item['raw_demand'] / max_demand) * 100
+                    percentage_demand = round(percentage_demand, 2)
+                    item['demand'] = percentage_demand
+                    del item['raw_demand']
+                    weekly_data.append(item)
+
            # Store the raw demand in the weekly data list
            weekly_data.extend(crop_weekly_demands)
 
