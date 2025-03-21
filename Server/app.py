@@ -57,3 +57,38 @@ def month_to_week_predictions(df):
     weekly_df = weekly_df[['id', 'crop_id', 'week_no', 'demand']]
 
     return weekly_df
+
+# Function to validate that the sum of weekly demands is reasonably close to the monthly demands
+def validate_weekly_distribution(monthly_df, weekly_df):
+    week_to_month = {}
+    for month, weeks in {
+        1: [1, 2, 3, 4],
+        2: [5, 6, 7, 8],
+        3: [9, 10, 11, 12, 13],
+        4: [14, 15, 16, 17],
+        5: [18, 19, 20, 21, 22],
+        6: [23, 24, 25, 26],
+        7: [27, 28, 29, 30, 31],
+        8: [32, 33, 34, 35],
+        9: [36, 37, 38, 39],
+        10: [40, 41, 42, 43, 44],
+        11: [45, 46, 47, 48],
+        12: [49, 50, 51, 52]
+    }.items():
+        for week in weeks:
+            week_to_month[week] = month
+
+    weekly_df['month'] = weekly_df['week_no'].map(week_to_month)
+    weekly_by_month = weekly_df.groupby(['crop_id', 'month'])['demand'].sum().reset_index()
+    weekly_by_month.rename(columns={'month': 'month_no'}, inplace=True)
+
+    monthly_data = monthly_df[['crop_id', 'month_no', 'demand']].copy()
+    comparison = pd.merge(monthly_data, weekly_by_month, on=['crop_id', 'month_no'],
+                          suffixes=('_monthly', '_weekly_sum'))
+
+    comparison['difference'] = comparison['demand_monthly'] - comparison['demand_weekly_sum']
+    comparison['difference_percent'] = (comparison['difference'] / comparison['demand_monthly']) * 100
+
+    weekly_df.drop(columns=['month'], inplace=True)
+
+    return comparison
