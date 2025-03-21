@@ -92,3 +92,6 @@ def validate_weekly_distribution(monthly_df, weekly_df):
     weekly_df.drop(columns=['month'], inplace=True)
 
     return comparison
+
+# Generate weekly predictions
+weekly_df = month_to_week_predictions(df)
