@@ -75,6 +75,9 @@ def month_to_week_predictions(df):
                     'demand': weekly_demand
                 })
 
+           # Store the raw demand in the weekly data list
+           weekly_data.extend(crop_weekly_demands)
+
     # Convert the list to a DataFrame
     weekly_df = pd.DataFrame(weekly_data)
 
