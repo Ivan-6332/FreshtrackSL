@@ -104,3 +104,36 @@ weekly_df.to_csv('weekly_demand_predictions.csv', index=False)
 
 print(f"Successfully generated weekly predictions for {len(weekly_df)} rows.")
 print("Weekly demand data saved to 'weekly_demand_predictions.csv'")
+
+# Optional visualization of monthly vs weekly data for a sample crop
+def plot_sample_crop(crop_id=1):
+    # Filter data for the selected crop
+    crop_monthly = df[df['crop_id'] == crop_id]
+    crop_weekly = weekly_df[weekly_df['crop_id'] == crop_id]
+
+    # Create a figure with two subplots
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
+
+    # Plot monthly data
+    ax1.plot(crop_monthly['month_no'], crop_monthly['demand'], 'o-', label=f'Monthly Demand (Crop {crop_id})')
+    ax1.set_xlabel('Month')
+    ax1.set_ylabel('Demand')
+    ax1.set_title(f'Monthly Demand for Crop {crop_id}')
+    ax1.grid(True)
+
+    # Plot weekly data
+    ax2.plot(crop_weekly['week_no'], crop_weekly['demand'], 'o-', label=f'Weekly Demand (Crop {crop_id})')
+    ax2.set_xlabel('Week')
+    ax2.set_ylabel('Demand')
+    ax2.set_title(f'Weekly Demand for Crop {crop_id}')
+    ax2.grid(True)
+
+    plt.tight_layout()
+    plt.savefig(f'crop_{crop_id}_demand_comparison.png')
+    plt.close()
+
+
+# Uncomment to generate a visualization for a specific crop
+# plot_sample_crop(crop_id=1)
+
+print("Done!")
