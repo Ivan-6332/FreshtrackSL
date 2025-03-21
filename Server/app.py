@@ -9,171 +9,99 @@ import os
 df = pd.read_csv('2021.csv')
 
 
-# Function to convert month-based data to week-based predictions
-def month_to_week_predictions(df):
-    # Create a dictionary to map months to their corresponding weeks
-    # Each month will be distributed into 4 or 5 weeks
-    month_to_weeks = {
-        1: [1, 2, 3, 4],  # January: weeks 1-4
-        2: [5, 6, 7, 8],  # February: weeks 5-8
-        3: [9, 10, 11, 12, 13],  # March: weeks 9-13
-        4: [14, 15, 16, 17],  # April: weeks 14-17
-        5: [18, 19, 20, 21, 22],  # May: weeks 18-22
-        6: [23, 24, 25, 26],  # June: weeks 23-26
-        7: [27, 28, 29, 30, 31],  # July: weeks 27-31
-        8: [32, 33, 34, 35],  # August: weeks 32-35
-        9: [36, 37, 38, 39],  # September: weeks 36-39
-        10: [40, 41, 42, 43, 44],  # October: weeks 40-44
-        11: [45, 46, 47, 48],  # November: weeks 45-48
-        12: [49, 50, 51, 52]  # December: weeks 49-52
-    }
+# Function to validate that each crop has a maximum demand of 100%
+def validate_max_percentages(weekly_df):
+    max_by_crop = weekly_df.groupby('crop_id')['demand'].max().reset_index()
 
-    # Create an empty list to store the weekly data
-    weekly_data = []
+    print("Maximum percentage by crop_id:")
+    for _, row in max_by_crop.iterrows():
+        print(f"Crop {row['crop_id']}: {row['demand']}%")
 
-    # Loop through each unique crop_id
-    for crop_id in df['crop_id'].unique():
-        # Filter data for the current crop
-        crop_data = df[df['crop_id'] == crop_id]
-
-        # Create a linear regression model to predict demand based on month
-        X = crop_data[['month_no']].values
-        y = crop_data['demand'].values
-
-        # Train the model
-        model = LinearRegression()
-        model.fit(X, y)
-
-        # Temporary list to store all demand values for this crop
-        crop_weekly_demands = []
-
-        # Loop through each month and predict weekly demand
-        for month in range(1, 13):
-            # Get the monthly demand from the data
-            monthly_demand = float(crop_data[crop_data['month_no'] == month]['demand'].values[0])
-
-            # Get the weeks corresponding to this month
-            weeks = month_to_weeks[month]
-            num_weeks = len(weeks)
-
-            # Create features for more precise weekly prediction
-            for i, week in enumerate(weeks):
-                # Create a weighted distribution for weeks within the month
-                position_within_month = (i + 1) / (num_weeks + 1)  # Normalized position (0-1)
-
-                # Predict demand for the specific week
-                week_factor = 1.0 + (position_within_month - 0.5) * 0.1  # +/- 5% variation
-                weekly_demand = (monthly_demand / num_weeks) * week_factor
-
-                # Round to the nearest integer
-                weekly_demand = int(round(weekly_demand))
-
-                # Store the weekly demand for this crop
-                crop_weekly_demands.append({
-                    'crop_id': crop_id,
-                    'week_no': week,
-                    'raw_demand': weekly_demand  # Store the raw demand temporarily
-                })
-
-        # Calculate the maximum demand for this crop
-        max_demand = max(item['raw_demand'] for item in crop_weekly_demands)
-
-        # Update each entry with the percentage demand
-        for item in crop_weekly_demands:
-            percentage_demand = (item['raw_demand'] / max_demand) * 100
-            # Round to 2 decimal places
-            percentage_demand = round(percentage_demand, 2)
-
-            # Replace raw demand with percentage demand
-            item['demand'] = percentage_demand
-            del item['raw_demand']
-
-            # Add to the final weekly data list
-            weekly_data.append(item)
-
-    # Convert the list to a DataFrame
-    weekly_df = pd.DataFrame(weekly_data)
-
-    # Sort by crop_id and week_no
-    weekly_df = weekly_df.sort_values(by=['crop_id', 'week_no'])
-
-    # Add an ID column
-    weekly_df['id'] = range(1, len(weekly_df) + 1)
-
-    # Reorder columns
-    weekly_df = weekly_df[['id', 'crop_id', 'week_no', 'demand']]
-
-    return weekly_df
+    all_100 = all(max_by_crop['demand'] == 100)
+    print(f"\nAll crops have 100% as maximum: {all_100}")
+    print(f"Number of weeks with 100% demand: {len(weekly_df[weekly_df['demand'] == 100])}")
+    print(f"Number of unique crops: {weekly_df['crop_id'].nunique()}")
 
 
 # Function to upload data to Supabase
 def upload_to_supabase(df, table_name):
-    # Supabase credentials - replace with your own
     supabase_url = "YOUR_SUPABASE_URL"
     supabase_key = "YOUR_SUPABASE_API_KEY"
-
-    # Create Supabase client
     supabase = create_client(supabase_url, supabase_key)
 
-    # Convert DataFrame to list of dictionaries
     records = df.to_dict('records')
-
-    # Upload data in batches to avoid hitting API limits
     batch_size = 100
-    total_records = len(records)
 
-    print(f"Uploading {total_records} records to Supabase table '{table_name}'...")
+    print(f"Uploading {len(records)} records to '{table_name}'...")
 
-    for i in range(0, total_records, batch_size):
-        batch = records[i:min(i + batch_size, total_records)]
+    for i in range(0, len(records), batch_size):
+        batch = records[i:i + batch_size]
         result = supabase.table(table_name).insert(batch).execute()
 
-        # Check for errors
         if hasattr(result, 'error') and result.error:
             print(f"Error uploading batch {i // batch_size + 1}: {result.error}")
         else:
-            print(f"Uploaded batch {i // batch_size + 1}/{(total_records - 1) // batch_size + 1}")
+            print(f"Uploaded batch {i // batch_size + 1}")
 
-    print("Upload to Supabase completed.")
+    print("Upload completed.")
 
 
-# Generate weekly predictions with percentage demand
+# Function to convert month-based data to week-based predictions
+def month_to_week_predictions(df):
+    month_to_weeks = {
+        1: [1, 2, 3, 4], 2: [5, 6, 7, 8], 3: [9, 10, 11, 12, 13],
+        4: [14, 15, 16, 17], 5: [18, 19, 20, 21, 22], 6: [23, 24, 25, 26],
+        7: [27, 28, 29, 30, 31], 8: [32, 33, 34, 35], 9: [36, 37, 38, 39],
+        10: [40, 41, 42, 43, 44], 11: [45, 46, 47, 48], 12: [49, 50, 51, 52]
+    }
+
+    weekly_data = []
+
+    for crop_id in df['crop_id'].unique():
+        crop_data = df[df['crop_id'] == crop_id]
+        X = crop_data[['month_no']].values
+        y = crop_data['demand'].values
+
+        model = LinearRegression()
+        model.fit(X, y)
+
+        crop_weekly_demands = []
+
+        for month in range(1, 13):
+            monthly_demand = float(crop_data[crop_data['month_no'] == month]['demand'].values[0])
+            weeks = month_to_weeks[month]
+            num_weeks = len(weeks)
+
+            for i, week in enumerate(weeks):
+                position_within_month = (i + 1) / (num_weeks + 1)
+                week_factor = 1.0 + (position_within_month - 0.5) * 0.1
+                weekly_demand = int(round((monthly_demand / num_weeks) * week_factor))
+
+                crop_weekly_demands.append({
+                    'crop_id': crop_id, 'week_no': week, 'raw_demand': weekly_demand
+                })
+
+        max_demand = max(item['raw_demand'] for item in crop_weekly_demands)
+
+        for item in crop_weekly_demands:
+            item['demand'] = round((item['raw_demand'] / max_demand) * 100, 2)
+            del item['raw_demand']
+            weekly_data.append(item)
+
+    weekly_df = pd.DataFrame(weekly_data).sort_values(by=['crop_id', 'week_no'])
+    weekly_df['id'] = range(1, len(weekly_df) + 1)
+    return weekly_df[['id', 'crop_id', 'week_no', 'demand']]
+
+
+# Generate weekly predictions
 weekly_df = month_to_week_predictions(df)
+validate_max_percentages(weekly_df)
 
-# Save the weekly predictions to a CSV file
 weekly_df.to_csv('weekly_demand_predictions_percentage.csv', index=False)
+print(f"Generated weekly predictions for {len(weekly_df)} rows.")
 
-print(f"Successfully generated weekly predictions as percentages for {len(weekly_df)} rows.")
-print("Weekly percentage demand data saved to 'weekly_demand_predictions_percentage.csv'")
-
-
-# Optional visualization of the percentage demand for a sample crop
-def plot_sample_crop_percentage(crop_id=1):
-    # Filter data for the selected crop
-    crop_weekly = weekly_df[weekly_df['crop_id'] == crop_id]
-
-    plt.figure(figsize=(12, 6))
-    plt.plot(crop_weekly['week_no'], crop_weekly['demand'], 'o-', label=f'Weekly Demand % (Crop {crop_id})')
-    plt.xlabel('Week')
-    plt.ylabel('Demand (% of Maximum)')
-    plt.title(f'Weekly Demand Percentage for Crop {crop_id}')
-    plt.ylim(0, 105)  # Set y-axis to show 0-105%
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(f'crop_{crop_id}_demand_percentage.png')
-    plt.close()
-
-
-# Uncomment to generate a visualization for a specific crop
-# plot_sample_crop_percentage(crop_id=1)
-
-# To upload to Supabase, uncomment and configure the following lines:
-"""
-# Configure your Supabase credentials in the upload_to_supabase function above
-# Then call the function with your table name
-table_name = "weekly_crop_demand"
-upload_to_supabase(weekly_df, table_name)
-"""
+# Uncomment to upload:
+# table_name = "weekly_crop_demand"
+# upload_to_supabase(weekly_df, table_name)
 
 print("Done!")
