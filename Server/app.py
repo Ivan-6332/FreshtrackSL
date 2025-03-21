@@ -148,6 +148,29 @@ def validate_weekly_distribution(monthly_df, weekly_df):
     return comparison
 
 
+# Function to upload data to Supabase
+def upload_to_supabase(df, table_name):
+    supabase_url = "YOUR_SUPABASE_URL"
+    supabase_key = "YOUR_SUPABASE_API_KEY"
+    supabase = create_client(supabase_url, supabase_key)
+    records = df.to_dict('records')
+
+    batch_size = 100
+    total_records = len(records)
+    print(f"Uploading {total_records} records to Supabase table '{table_name}'...")
+
+    for i in range(0, total_records, batch_size):
+        batch = records[i:min(i + batch_size, total_records)]
+        result = supabase.table(table_name).insert(batch).execute()
+
+        if hasattr(result, 'error') and result.error:
+            print(f"Error uploading batch {i // batch_size + 1}: {result.error}")
+        else:
+            print(f"Uploaded batch {i // batch_size + 1}/{(total_records - 1) // batch_size + 1}")
+
+    print("Upload to Supabase completed.")
+
+
 # Generate weekly predictions
 weekly_df = month_to_week_predictions(df)
 
