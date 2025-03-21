@@ -11,8 +11,32 @@ class CropCard extends StatefulWidget {
   State<CropCard> createState() => _CropCardState();
 }
 
-class _CropCardState extends State<CropCard> {
+class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin {
   bool _isHovered = false;
+  late AnimationController _animationController;
+  late Animation<double> _lineAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1800),
+      vsync: this,
+    );
+    _lineAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuart,
+      ),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +44,9 @@ class _CropCardState extends State<CropCard> {
     // Calculate percentage of demand relative to max (200%)
     final demandPercentage = widget.crop.demand / 200;
     final isHighDemand = widget.crop.demand > 100;
+
+    // Define demand color based on value
+    final Color demandColor = isHighDemand ? Colors.green.shade700 : Colors.red.shade700;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -33,8 +60,7 @@ class _CropCardState extends State<CropCard> {
           curve: Curves.easeOutQuad,
           margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
           transform: _isHovered
-              ? (Matrix4.identity()
-                ..scale(1.05)) // Scale up when hovered/touched
+              ? (Matrix4.identity()..scale(1.05)) // Scale up when hovered/touched
               : Matrix4.identity(),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14.0),
@@ -74,141 +100,123 @@ class _CropCardState extends State<CropCard> {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
+                  padding: const EdgeInsets.all(16.0), // Increased from 12.0 for more padding
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Crop emoji
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Center(
-                              child: Text(
-                                widget.crop.pic,
-                                style: const TextStyle(fontSize: 32),
+                      // Crop emoji
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            widget.crop.pic,
+                            style: const TextStyle(fontSize: 32),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Crop details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Add space at the top to move text down
+                            const SizedBox(height: 8),
+
+                            // Crop name
+                            Text(
+                              widget.crop.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          // Crop details
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+
+                            // Category name with no gap
+                            // Using a container with limited width to force long category names to wrap to two lines
+                            Container(
+                              width: 150, // Adjust this width as needed based on your UI
+                              child: Text(
+                                widget.crop.category,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                                maxLines: 2, // Allow up to 2 lines
+                                overflow: TextOverflow.ellipsis, // Use ellipsis if it's longer than 2 lines
+                              ),
+                            ),
+
+                            const SizedBox(height: 4), // Small gap after category
+
+                            // Row containing demand info
+                            Row(
                               children: [
-                                Text(
-                                  widget.crop.name,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  widget.crop.category,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
+                                const Spacer(), // Push demand info to the right
+
+                                // Animated demand graph
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(
-                                      Icons.trending_up,
-                                      color: Colors.green.shade700,
-                                      size: 16,
+                                    // Graph visualization
+                                    Container(
+                                      width: 70,
+                                      height: 40,
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: Colors.grey.shade300),
+                                      ),
+                                      child: AnimatedBuilder(
+                                        animation: _animationController,
+                                        builder: (context, child) {
+                                          return CustomPaint(
+                                            size: const Size(62, 32),
+                                            painter: ZigzagDemandGraphPainter(
+                                              demandPercentage: demandPercentage,
+                                              animationValue: _lineAnimation.value,
+                                              isHighDemand: isHighDemand,
+                                              demandColor: demandColor,
+                                            ),
+                                          );
+                                        },
+                                      ),
                                     ),
-                                    const SizedBox(width: 4),
+                                    const SizedBox(height: 2),
+                                    // Demand text below
                                     Text(
-                                      'Demand: ${widget.crop.demand.toStringAsFixed(1)}',
+                                      'Demand:',
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: Colors.green.shade700,
-                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey.shade800,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Smaller button with same text size
-                      SizedBox(
-                        width: double.infinity,
-                        height: 46, // Smaller button height
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            gradient: LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: [
-                                Colors.green.shade400,
-                                Colors.teal.shade400,
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.green.withOpacity(0.3),
-                                offset: const Offset(0, 2),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: Colors.transparent,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10), // Reduced vertical padding
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize:
-                                  MainAxisSize.min, // Makes the row tighter
-                              children: [
+
+                                // Small horizontal gap
+                                const SizedBox(width: 4),
+
+                                // Demand value
                                 Text(
-                                  localizations.get('viewHistory') ??
-                                      'View History',
-                                  style: const TextStyle(
-                                    fontSize:
-                                        15, // Maintained the same text size
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.5,
-                                    color: Colors.white,
-                                    shadows: [
-                                      Shadow(
-                                        offset: Offset(0, 1),
-                                        blurRadius: 2,
-                                        color: Color.fromRGBO(0, 0, 0, 0.3),
-                                      ),
-                                    ],
+                                  '${widget.crop.demand.toStringAsFixed(1)}',
+                                  style: TextStyle(
+                                    fontSize: 16, // Larger text for demand value
+                                    color: demandColor,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                const Icon(
-                                  Icons.arrow_forward,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
                               ],
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ],
@@ -220,5 +228,173 @@ class _CropCardState extends State<CropCard> {
         ),
       ),
     );
+  }
+}
+
+class ZigzagDemandGraphPainter extends CustomPainter {
+  final double demandPercentage;
+  final double animationValue;
+  final bool isHighDemand;
+  final Color demandColor;
+
+  ZigzagDemandGraphPainter({
+    required this.demandPercentage,
+    required this.animationValue,
+    required this.isHighDemand,
+    required this.demandColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Draw X and Y axis
+    final axisPaint = Paint()
+      ..color = Colors.grey.shade400
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+
+    // Y-axis
+    canvas.drawLine(
+      Offset(0, 0),
+      Offset(0, size.height),
+      axisPaint,
+    );
+
+    // X-axis
+    canvas.drawLine(
+      Offset(0, size.height),
+      Offset(size.width, size.height),
+      axisPaint,
+    );
+
+    // Draw zigzag demand line
+    final linePaint = Paint()
+      ..color = demandColor
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path();
+
+    // Start at origin
+    path.moveTo(0, size.height);
+
+    // Calculate how far along the x-axis to draw based on animation
+    final maxX = size.width * animationValue;
+
+    // For zigzag pattern, we'll create exactly 3 line segments
+    const segmentCount = 3;
+
+    // Starting height for the zigzag (represents overall trend)
+    final trendHeight = isHighDemand
+        ? size.height * (1 - demandPercentage) // High demand trends upward
+        : size.height * 0.9; // Low demand trends flat/slightly downward
+
+    // Height of zigzag variation
+    final zigzagAmplitude = size.height * 0.15;
+
+    // Define points for zigzag - exactly 4 points for 3 lines
+    List<Offset> points = [];
+
+    // Starting point
+    points.add(Offset(0, size.height));
+
+    // Generate exactly 3 line segments
+    for (int i = 1; i <= segmentCount; i++) {
+      final progress = i / segmentCount;
+      final x = size.width * progress;
+
+      // Skip points beyond our animation progress
+      if (x > maxX) break;
+
+      // Calculate y with zigzag pattern and overall trend
+      double y;
+
+      if (isHighDemand) {
+        // For high demand: zigzag with upward trend
+        final baseY = size.height - (size.height - trendHeight) * progress;
+        // Alternate up and down for the zigzag effect
+        final zigzagOffset = i.isOdd ? -zigzagAmplitude : zigzagAmplitude;
+        y = baseY + zigzagOffset;
+
+        // Make sure the last point is at the top for high demand
+        if (i == segmentCount) {
+          y = baseY - zigzagAmplitude; // Force last point to be at the top
+        }
+      } else {
+        // For low demand: zigzag with downward trend
+        final baseY = size.height + (trendHeight - size.height) * progress;
+        // Alternate up and down for the zigzag effect
+        final zigzagOffset = i.isOdd ? zigzagAmplitude : -zigzagAmplitude;
+        y = baseY + zigzagOffset;
+
+        // Make sure the last point is at the bottom for low demand
+        if (i == segmentCount) {
+          y = baseY + zigzagAmplitude; // Force last point to be at the bottom
+        }
+      }
+
+      // Ensure y stays within bounds
+      y = y.clamp(5.0, size.height - 5.0);
+      points.add(Offset(x, y));
+    }
+
+    // Add endpoint if needed due to animation cutoff
+    if (animationValue < 1.0 && points.length > 1) {
+      // Find the two points around the animation cutoff
+      for (int i = 0; i < points.length - 1; i++) {
+        if (points[i].dx <= maxX && points[i + 1].dx > maxX) {
+          // Interpolate to find the exact cutoff point
+          final ratio = (maxX - points[i].dx) / (points[i + 1].dx - points[i].dx);
+          final y = points[i].dy + (points[i + 1].dy - points[i].dy) * ratio;
+          points = points.sublist(0, i + 1); // Keep only points up to i
+          points.add(Offset(maxX, y)); // Add the cutoff point
+          break;
+        }
+      }
+    }
+
+    // Draw the path
+    if (points.length > 1) {
+      path.moveTo(points[0].dx, points[0].dy);
+      for (int i = 1; i < points.length; i++) {
+        path.lineTo(points[i].dx, points[i].dy);
+      }
+
+      canvas.drawPath(path, linePaint);
+
+      // Arrow head code removed as requested
+    }
+
+    // Draw small tick marks on the axes
+    final tickPaint = Paint()
+      ..color = Colors.grey.shade400
+      ..strokeWidth = 1.0;
+
+    // X-axis ticks
+    for (int i = 1; i <= 3; i++) {
+      final x = size.width * (i / 3);
+      canvas.drawLine(
+        Offset(x, size.height),
+        Offset(x, size.height - 2),
+        tickPaint,
+      );
+    }
+
+    // Y-axis ticks
+    for (int i = 1; i <= 3; i++) {
+      final y = size.height * (i / 3);
+      canvas.drawLine(
+        Offset(0, y),
+        Offset(2, y),
+        tickPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(ZigzagDemandGraphPainter oldDelegate) {
+    return oldDelegate.animationValue != animationValue ||
+        oldDelegate.demandPercentage != demandPercentage;
   }
 }
