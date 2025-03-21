@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
+from supabase import create_client
+import os
 
 # Load the monthly data
 df = pd.read_csv('2021.csv')
@@ -43,6 +44,9 @@ def month_to_week_predictions(df):
         model = LinearRegression()
         model.fit(X, y)
 
+        # Temporary list to store all demand values for this crop
+        crop_weekly_demands = []
+
         # Loop through each month and predict weekly demand
         for month in range(1, 13):
             # Get the monthly demand from the data
@@ -53,27 +57,39 @@ def month_to_week_predictions(df):
             num_weeks = len(weeks)
 
             # Create features for more precise weekly prediction
-            # Assume each week within a month has a slight trend based on position
             for i, week in enumerate(weeks):
                 # Create a weighted distribution for weeks within the month
-                # This creates a slight variation between weeks while maintaining the monthly total
                 position_within_month = (i + 1) / (num_weeks + 1)  # Normalized position (0-1)
 
-                # Predict demand for the specific week using a combination of:
-                # 1. Linear regression prediction based on week number
-                # 2. Weighted distribution of the monthly total
+                # Predict demand for the specific week
                 week_factor = 1.0 + (position_within_month - 0.5) * 0.1  # +/- 5% variation
                 weekly_demand = (monthly_demand / num_weeks) * week_factor
 
                 # Round to the nearest integer
                 weekly_demand = int(round(weekly_demand))
 
-                # Add the weekly data to the list
-                weekly_data.append({
+                # Store the weekly demand for this crop
+                crop_weekly_demands.append({
                     'crop_id': crop_id,
                     'week_no': week,
-                    'demand': weekly_demand
+                    'raw_demand': weekly_demand  # Store the raw demand temporarily
                 })
+
+        # Calculate the maximum demand for this crop
+        max_demand = max(item['raw_demand'] for item in crop_weekly_demands)
+
+        # Update each entry with the percentage demand
+        for item in crop_weekly_demands:
+            percentage_demand = (item['raw_demand'] / max_demand) * 100
+            # Round to 2 decimal places
+            percentage_demand = round(percentage_demand, 2)
+
+            # Replace raw demand with percentage demand
+            item['demand'] = percentage_demand
+            del item['raw_demand']
+
+            # Add to the final weekly data list
+            weekly_data.append(item)
 
     # Convert the list to a DataFrame
     weekly_df = pd.DataFrame(weekly_data)
@@ -90,98 +106,74 @@ def month_to_week_predictions(df):
     return weekly_df
 
 
-# Function to validate that the sum of weekly demands is reasonably close to the monthly demands
-def validate_weekly_distribution(monthly_df, weekly_df):
-    # Group weekly data by crop_id and month (derived from week_no)
-    week_to_month = {}
-    for month, weeks in {
-        1: [1, 2, 3, 4],  # January
-        2: [5, 6, 7, 8],  # February
-        3: [9, 10, 11, 12, 13],  # March
-        4: [14, 15, 16, 17],  # April
-        5: [18, 19, 20, 21, 22],  # May
-        6: [23, 24, 25, 26],  # June
-        7: [27, 28, 29, 30, 31],  # July
-        8: [32, 33, 34, 35],  # August
-        9: [36, 37, 38, 39],  # September
-        10: [40, 41, 42, 43, 44],  # October
-        11: [45, 46, 47, 48],  # November
-        12: [49, 50, 51, 52]  # December
-    }.items():
-        for week in weeks:
-            week_to_month[week] = month
+# Function to upload data to Supabase
+def upload_to_supabase(df, table_name):
+    # Supabase credentials - replace with your own
+    supabase_url = "YOUR_SUPABASE_URL"
+    supabase_key = "YOUR_SUPABASE_API_KEY"
 
-    # Add month to weekly data
-    weekly_df['month'] = weekly_df['week_no'].map(week_to_month)
+    # Create Supabase client
+    supabase = create_client(supabase_url, supabase_key)
 
-    # Group and sum weekly data by crop_id and month
-    weekly_by_month = weekly_df.groupby(['crop_id', 'month'])['demand'].sum().reset_index()
-    weekly_by_month.rename(columns={'month': 'month_no'}, inplace=True)
+    # Convert DataFrame to list of dictionaries
+    records = df.to_dict('records')
 
-    # Prepare monthly data
-    monthly_data = monthly_df[['crop_id', 'month_no', 'demand']].copy()
+    # Upload data in batches to avoid hitting API limits
+    batch_size = 100
+    total_records = len(records)
 
-    # Merge to compare
-    comparison = pd.merge(monthly_data, weekly_by_month, on=['crop_id', 'month_no'],
-                          suffixes=('_monthly', '_weekly_sum'))
+    print(f"Uploading {total_records} records to Supabase table '{table_name}'...")
 
-    # Calculate difference
-    comparison['difference'] = comparison['demand_monthly'] - comparison['demand_weekly_sum']
-    comparison['difference_percent'] = (comparison['difference'] / comparison['demand_monthly']) * 100
+    for i in range(0, total_records, batch_size):
+        batch = records[i:min(i + batch_size, total_records)]
+        result = supabase.table(table_name).insert(batch).execute()
 
-    # Drop the temporary month column from weekly_df
-    weekly_df.drop(columns=['month'], inplace=True)
+        # Check for errors
+        if hasattr(result, 'error') and result.error:
+            print(f"Error uploading batch {i // batch_size + 1}: {result.error}")
+        else:
+            print(f"Uploaded batch {i // batch_size + 1}/{(total_records - 1) // batch_size + 1}")
 
-    return comparison
+    print("Upload to Supabase completed.")
 
 
-# Generate weekly predictions
+# Generate weekly predictions with percentage demand
 weekly_df = month_to_week_predictions(df)
 
-# Validate our weekly distribution
-validation = validate_weekly_distribution(df, weekly_df)
-
-# Print validation summary
-print("Validation Summary:")
-print(f"Average absolute difference: {validation['difference'].abs().mean():.2f}")
-print(f"Average percentage difference: {validation['difference_percent'].abs().mean():.2f}%")
-
 # Save the weekly predictions to a CSV file
-weekly_df.to_csv('weekly_demand_predictions.csv', index=False)
+weekly_df.to_csv('weekly_demand_predictions_percentage.csv', index=False)
 
-print(f"Successfully generated weekly predictions for {len(weekly_df)} rows.")
-print("Weekly demand data saved to 'weekly_demand_predictions.csv'")
+print(f"Successfully generated weekly predictions as percentages for {len(weekly_df)} rows.")
+print("Weekly percentage demand data saved to 'weekly_demand_predictions_percentage.csv'")
 
 
-# Optional visualization of monthly vs weekly data for a sample crop
-def plot_sample_crop(crop_id=1):
+# Optional visualization of the percentage demand for a sample crop
+def plot_sample_crop_percentage(crop_id=1):
     # Filter data for the selected crop
-    crop_monthly = df[df['crop_id'] == crop_id]
     crop_weekly = weekly_df[weekly_df['crop_id'] == crop_id]
 
-    # Create a figure with two subplots
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
-
-    # Plot monthly data
-    ax1.plot(crop_monthly['month_no'], crop_monthly['demand'], 'o-', label=f'Monthly Demand (Crop {crop_id})')
-    ax1.set_xlabel('Month')
-    ax1.set_ylabel('Demand')
-    ax1.set_title(f'Monthly Demand for Crop {crop_id}')
-    ax1.grid(True)
-
-    # Plot weekly data
-    ax2.plot(crop_weekly['week_no'], crop_weekly['demand'], 'o-', label=f'Weekly Demand (Crop {crop_id})')
-    ax2.set_xlabel('Week')
-    ax2.set_ylabel('Demand')
-    ax2.set_title(f'Weekly Demand for Crop {crop_id}')
-    ax2.grid(True)
-
+    plt.figure(figsize=(12, 6))
+    plt.plot(crop_weekly['week_no'], crop_weekly['demand'], 'o-', label=f'Weekly Demand % (Crop {crop_id})')
+    plt.xlabel('Week')
+    plt.ylabel('Demand (% of Maximum)')
+    plt.title(f'Weekly Demand Percentage for Crop {crop_id}')
+    plt.ylim(0, 105)  # Set y-axis to show 0-105%
+    plt.grid(True)
+    plt.legend()
     plt.tight_layout()
-    plt.savefig(f'crop_{crop_id}_demand_comparison.png')
+    plt.savefig(f'crop_{crop_id}_demand_percentage.png')
     plt.close()
 
 
 # Uncomment to generate a visualization for a specific crop
-# plot_sample_crop(crop_id=1)
+# plot_sample_crop_percentage(crop_id=1)
+
+# To upload to Supabase, uncomment and configure the following lines:
+"""
+# Configure your Supabase credentials in the upload_to_supabase function above
+# Then call the function with your table name
+table_name = "weekly_crop_demand"
+upload_to_supabase(weekly_df, table_name)
+"""
 
 print("Done!")
