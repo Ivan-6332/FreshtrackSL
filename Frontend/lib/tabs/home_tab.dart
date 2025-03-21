@@ -84,7 +84,7 @@ class _HomeTabState extends State<HomeTab> {
                         children: [
                           // Enhanced header section with dark theme
                           Container(
-                            padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
+                            padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -99,28 +99,9 @@ class _HomeTabState extends State<HomeTab> {
                                   ),
                                   child: const Greeting(),
                                 ),
-
-                                const SizedBox(height: 24),
-
-                                // Modernized search bar with dark theme
-                                Theme(
-                                  data: Theme.of(context).copyWith(
-                                    primaryColor: _primaryGreen,
-                                    hintColor: _lightText.withOpacity(0.4),
-                                    colorScheme: ColorScheme.dark(
-                                      primary: _primaryGreen,
-                                      surface: _darkBackground,
-                                    ),
-                                  ),
-                                  child: const SearchBarWithProfile(),
-                                ),
                               ],
                             ),
                           ),
-
-                          const SizedBox(
-                              height:
-                                  12), // Reduced gap between search bar and highlights
 
                           // Highlights section with dark theme and wider width
                           Container(
