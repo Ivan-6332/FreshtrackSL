@@ -98,3 +98,9 @@ weekly_df = month_to_week_predictions(df)
 
 # Validate our weekly distribution
 validation = validate_weekly_distribution(df, weekly_df)
+
+# Save the weekly predictions to a CSV file
+weekly_df.to_csv('weekly_demand_predictions.csv', index=False)
+
+print(f"Successfully generated weekly predictions for {len(weekly_df)} rows.")
+print("Weekly demand data saved to 'weekly_demand_predictions.csv'")
