@@ -71,7 +71,7 @@ def month_to_week_predictions(df):
 
             for i, week in enumerate(weeks):
                 position_within_month = (i + 1) / (num_weeks + 1)
-                week_factor = 1.0 + (position_within_month - 0.5) * 0.1
+                week_factor = 1.0 + (position_within_month - 0.5) * 0.05  # Reduce variation from 10% to 5%
                 weekly_demand = int(round((monthly_demand / num_weeks) * week_factor))
 
                 crop_weekly_demands.append({
