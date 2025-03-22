@@ -25,7 +25,6 @@ except Exception as e:
 def validate_max_percentages(weekly_df):
     try:
         logging.info("Validating max percentages for crops.")
-        
         max_by_crop = weekly_df.groupby('crop_id')['demand'].max().reset_index()
         
         for _, row in max_by_crop.iterrows():
@@ -41,8 +40,13 @@ def upload_to_supabase(df, table_name):
     try:
         logging.info(f"Starting upload to Supabase table '{table_name}'.")
 
-        supabase_url = "YOUR_SUPABASE_URL"
-        supabase_key = "YOUR_SUPABASE_API_KEY"
+        supabase_url = os.getenv("SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_API_KEY")
+
+        if not supabase_url or not supabase_key:
+            logging.error("Supabase credentials are missing!")
+            raise SystemExit("Supabase credentials not found, terminating script.")
+
         supabase = create_client(supabase_url, supabase_key)
 
         records = df.to_dict('records')
