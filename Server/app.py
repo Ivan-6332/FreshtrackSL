@@ -8,7 +8,6 @@ import os
 # Load the monthly data
 df = pd.read_csv('2021.csv')
 
-
 # Function to validate that each crop has a maximum demand of 100%
 def validate_max_percentages(weekly_df):
     max_by_crop = weekly_df.groupby('crop_id')['demand'].max().reset_index()
@@ -21,7 +20,6 @@ def validate_max_percentages(weekly_df):
     print(f"\nAll crops have 100% as maximum: {all_100}")
     print(f"Number of weeks with 100% demand: {len(weekly_df[weekly_df['demand'] == 100])}")
     print(f"Number of unique crops: {weekly_df['crop_id'].nunique()}")
-
 
 # Function to upload data to Supabase
 def upload_to_supabase(df, table_name):
@@ -44,7 +42,6 @@ def upload_to_supabase(df, table_name):
             print(f"Uploaded batch {i // batch_size + 1}")
 
     print("Upload completed.")
-
 
 # Function to convert month-based data to week-based predictions
 def month_to_week_predictions(df):
@@ -92,16 +89,34 @@ def month_to_week_predictions(df):
     weekly_df['id'] = range(1, len(weekly_df) + 1)
     return weekly_df[['id', 'crop_id', 'week_no', 'demand']]
 
-
 # Generate weekly predictions
 weekly_df = month_to_week_predictions(df)
 validate_max_percentages(weekly_df)
 
+# Save weekly predictions
 weekly_df.to_csv('weekly_demand_predictions_percentage.csv', index=False)
 print(f"Generated weekly predictions for {len(weekly_df)} rows.")
 
-# Uncomment to upload:
-# table_name = "weekly_crop_demand"
-# upload_to_supabase(weekly_df, table_name)
+# Function to plot multiple crops
+def plot_multiple_crops(crop_ids=[1, 2, 3, 4, 5]):
+    plt.figure(figsize=(14, 8))
+
+    for crop_id in crop_ids:
+        if crop_id in weekly_df['crop_id'].unique():
+            crop_weekly = weekly_df[weekly_df['crop_id'] == crop_id]
+            plt.plot(crop_weekly['week_no'], crop_weekly['demand'], 'o-', label=f'Crop {crop_id}')
+
+    plt.xlabel('Week')
+    plt.ylabel('Demand (% of Maximum per Crop)')
+    plt.title('Weekly Demand Percentage for Multiple Crops')
+    plt.ylim(0, 105)
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig('multiple_crops_demand_percentage.png')
+    plt.close()
+
+# Uncomment to plot multiple crops
+# plot_multiple_crops(crop_ids=[1, 2, 3, 4, 5])
 
 print("Done!")
