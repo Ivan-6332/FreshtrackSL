@@ -6,7 +6,7 @@ from supabase import create_client
 import os
 
 # Load the monthly data
-df = pd.read_csv('2021.csv')
+df = pd.read_csv('data.csv')
 
 
 # Function to convert month-based data to week-based predictions
