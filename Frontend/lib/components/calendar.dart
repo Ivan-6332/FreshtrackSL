@@ -1,28 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../providers/week_provider.dart';
 
 class Calendar extends StatefulWidget {
   final EdgeInsetsGeometry margin;
-  final Function(int)? onWeekChange; // Callback to provide selected week number
 
   const Calendar({
     super.key,
     this.margin = const EdgeInsets.all(16),
-    this.onWeekChange,
   });
 
   @override
   State<Calendar> createState() => _CalendarState();
 }
 
-class _CalendarState extends State<Calendar> {
-  // Calendar state variables
-  late DateTime _currentWeekStart;
-  late DateTime _currentWeekEnd;
-  late List<DateTime> _weekDays;
-  late int _weekNumber;
-  final int _totalWeeks = 52;
-
+class _CalendarState extends State<Calendar>
+    with AutomaticKeepAliveClientMixin {
   // Calendar colors
   final Color _calendarBg = Colors.white;
   final Color _selectedDayBg = Colors.green.shade500;
@@ -35,122 +29,35 @@ class _CalendarState extends State<Calendar> {
   final Color _primaryGreen = const Color(0xFF1B5E20); // Dark green
 
   @override
-  void initState() {
-    super.initState();
-    _initializeCalendar();
+  bool get wantKeepAlive => true;
+
+  // Check if the current selected week is the current week
+  bool _isCurrentWeek(WeekProvider provider) {
+    final currentWeek = _getCurrentWeekNumber();
+    return provider.selectedWeek == currentWeek;
   }
 
-  void _initializeCalendar() {
-    // Initialize with current week
+  // Helper method to get the current week number (1-52)
+  int _getCurrentWeekNumber() {
     final now = DateTime.now();
-
-    // Find the start of the current week (Monday)
-    _currentWeekStart = now.subtract(Duration(days: now.weekday - 1));
-
-    // Find the end of the current week (Sunday)
-    _currentWeekEnd = _currentWeekStart.add(const Duration(days: 6));
-
-    _updateWeekDays();
-    _calculateWeekNumber();
-
-    // Notify parent widget of initial week number
-    if (widget.onWeekChange != null) {
-      widget.onWeekChange!(_weekNumber);
-    }
-  }
-
-  void _updateWeekDays() {
-    _weekDays = List.generate(7, (index) =>
-        _currentWeekStart.add(Duration(days: index))
-    );
-    _currentWeekEnd = _weekDays.last;
-  }
-
-  void _calculateWeekNumber() {
-    _weekNumber = getWeekNumber(_currentWeekStart);
-  }
-
-  // Function to calculate ISO 8601 Week Number
-  int getWeekNumber(DateTime date) {
-    // ISO 8601 weeks start on Monday and the first Thursday determines week 1
-    DateTime thursday = date.add(Duration(days: 4 - date.weekday)); // Move to nearest Thursday
-    DateTime firstDayOfYear = DateTime(thursday.year, 1, 1);
-    int daysSinceFirst = thursday.difference(firstDayOfYear).inDays;
-    return ((daysSinceFirst / 7).floor()) + 1;
-  }
-
-  void _goToPreviousWeek() {
-    setState(() {
-      _currentWeekStart = _currentWeekStart.subtract(const Duration(days: 7));
-      _updateWeekDays();
-      _calculateWeekNumber();
-    });
-
-    // Notify parent widget of week change
-    if (widget.onWeekChange != null) {
-      widget.onWeekChange!(_weekNumber);
-    }
-  }
-
-  void _goToNextWeek() {
-    setState(() {
-      _currentWeekStart = _currentWeekStart.add(const Duration(days: 7));
-      _updateWeekDays();
-      _calculateWeekNumber();
-    });
-
-    // Notify parent widget of week change
-    if (widget.onWeekChange != null) {
-      widget.onWeekChange!(_weekNumber);
-    }
-  }
-
-  void _goToCurrentWeek() {
-    setState(() {
-      final now = DateTime.now();
-      _currentWeekStart = now.subtract(Duration(days: now.weekday - 1));
-      _updateWeekDays();
-      _calculateWeekNumber();
-    });
-
-    // Notify parent widget of week change
-    if (widget.onWeekChange != null) {
-      widget.onWeekChange!(_weekNumber);
-    }
-
-    // Show feedback to user
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
-          'Calendar reset to current week',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: _primaryGreen,
-        duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  bool _isCurrentWeek() {
-    final now = DateTime.now();
-    final currentWeekStart = now.subtract(Duration(days: now.weekday - 1));
-    return _currentWeekStart.year == currentWeekStart.year &&
-        _currentWeekStart.month == currentWeekStart.month &&
-        _currentWeekStart.day == currentWeekStart.day;
-  }
-
-  // Check if the given day is today
-  bool _isToday(DateTime day) {
-    final now = DateTime.now();
-    return day.year == now.year && day.month == now.month && day.day == now.day;
+    final firstDayOfYear = DateTime(now.year, 1, 1);
+    final dayOfYear = now.difference(firstDayOfYear).inDays;
+    return ((dayOfYear / 7) + 1).floor();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     // Get screen size for responsive design
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 360;
+
+    // Get the week provider
+    final weekProvider = Provider.of<WeekProvider>(context);
+    final selectedWeek = weekProvider.selectedWeek;
+    final dateRange = weekProvider.formattedDateRange;
+    final totalWeeks = 52;
 
     return Container(
       margin: widget.margin,
@@ -172,7 +79,7 @@ class _CalendarState extends State<Calendar> {
           Padding(
             padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
             child: Text(
-              "Here's the insights for : ${DateFormat('d MMM').format(_currentWeekStart)} - ${DateFormat('d MMM yyyy').format(_currentWeekEnd)}",
+              "Here's the insights for: $dateRange",
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -184,7 +91,7 @@ class _CalendarState extends State<Calendar> {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              "Use the toggles above to change the week.",
+              "Use the toggles below to change the week.",
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.black87,
@@ -215,12 +122,12 @@ class _CalendarState extends State<Calendar> {
                       Icons.chevron_left,
                       size: 32,
                     ),
-                    onPressed: _goToPreviousWeek,
+                    onPressed: () => weekProvider.previousWeek(),
                   ),
 
                   // Week text
                   Text(
-                    'Week $_weekNumber of $_totalWeeks',
+                    'Week $selectedWeek of $totalWeeks',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -233,7 +140,7 @@ class _CalendarState extends State<Calendar> {
                       Icons.chevron_right,
                       size: 32,
                     ),
-                    onPressed: _goToNextWeek,
+                    onPressed: () => weekProvider.nextWeek(),
                   ),
                 ],
               ),
@@ -241,14 +148,14 @@ class _CalendarState extends State<Calendar> {
           ),
 
           // Reset button (only visible when not on current week)
-          if (!_isCurrentWeek())
+          if (!_isCurrentWeek(weekProvider))
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: AnimatedOpacity(
-                opacity: _isCurrentWeek() ? 0.0 : 1.0,
+                opacity: _isCurrentWeek(weekProvider) ? 0.0 : 1.0,
                 duration: const Duration(milliseconds: 300),
                 child: ElevatedButton.icon(
-                  onPressed: _goToCurrentWeek,
+                  onPressed: () => weekProvider.resetToCurrentWeek(),
                   icon: const Icon(Icons.today, size: 16),
                   label: const Text('Reset to Current Week'),
                   style: ElevatedButton.styleFrom(

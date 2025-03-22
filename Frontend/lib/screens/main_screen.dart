@@ -11,28 +11,35 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateMixin {
+class _MainScreenState extends State<MainScreen>
+    with SingleTickerProviderStateMixin {
   // Current selected tab index
   int _currentIndex = 0;
 
   // Animation controller for tab transitions
   late AnimationController _animationController;
 
-  // List of tab widgets
+  // List of tab widgets - each wrapped in AutomaticKeepAlive
   final List<Widget> _tabs = [
-    const HomeTab(),
-    const ExploreTab(),
-    const MapTab(),
-    const ProfileTab(),
+    const KeepAlivePage(child: HomeTab()),
+    const KeepAlivePage(child: ExploreTab()),
+    const KeepAlivePage(child: MapTab()),
+    const KeepAlivePage(child: ProfileTab()),
   ];
 
   // Updated colors from ExploreTab
-  final Color _primaryGreen = const Color(0xFF4CAF50); // Main green from ExploreTab
-  final Color _accentGreen = const Color(0xFF81C784); // Secondary green from ExploreTab
-  final Color _paleGreen = const Color(0xFFE8F5E9); // Background green from ExploreTab
-  final Color _darkText = const Color(0xFF212121); // Near black text from ExploreTab
-  final Color _lightBg = const Color(0xFFFAFAFA); // Off-white background from ExploreTab
-  final Color _inactiveGrey = const Color(0xFF9E9E9E); // Medium grey for inactive icons
+  final Color _primaryGreen =
+      const Color(0xFF4CAF50); // Main green from ExploreTab
+  final Color _accentGreen =
+      const Color(0xFF81C784); // Secondary green from ExploreTab
+  final Color _paleGreen =
+      const Color(0xFFE8F5E9); // Background green from ExploreTab
+  final Color _darkText =
+      const Color(0xFF212121); // Near black text from ExploreTab
+  final Color _lightBg =
+      const Color(0xFFFAFAFA); // Off-white background from ExploreTab
+  final Color _inactiveGrey =
+      const Color(0xFF9E9E9E); // Medium grey for inactive icons
 
   @override
   void initState() {
@@ -65,16 +72,19 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
           ),
         ),
         child: SafeArea(
-          child: AnimatedSwitcher(
-            // Add smooth transition between tabs
-            duration: const Duration(milliseconds: 300),
-            child: _tabs[_currentIndex],
+          // Use IndexedStack instead of AnimatedSwitcher to preserve state
+          child: IndexedStack(
+            index: _currentIndex,
+            children: _tabs,
           ),
         ),
       ),
       // Enhanced 3D styled bottom navigation bar
       bottomNavigationBar: Container(
-        height: 65 + MediaQuery.of(context).padding.bottom, // Adjust height for different devices
+        height: 65 +
+            MediaQuery.of(context)
+                .padding
+                .bottom, // Adjust height for different devices
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -121,7 +131,8 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
         child: ClipRRect(
           borderRadius: BorderRadius.circular(25),
           child: Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+            padding:
+                EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -163,42 +174,43 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
           // Add 3D effect to selected item
           boxShadow: isSelected
               ? [
-            BoxShadow(
-              color: _accentGreen.withOpacity(0.2),
-              blurRadius: 8,
-              spreadRadius: 0,
-              offset: const Offset(0, 3),
-            ),
-            BoxShadow(
-              color: Colors.white.withOpacity(0.9),
-              blurRadius: 10,
-              spreadRadius: -2,
-              offset: const Offset(0, -3),
-            ),
-          ]
+                  BoxShadow(
+                    color: _accentGreen.withOpacity(0.2),
+                    blurRadius: 8,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 3),
+                  ),
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.9),
+                    blurRadius: 10,
+                    spreadRadius: -2,
+                    offset: const Offset(0, -3),
+                  ),
+                ]
               : [],
           // Add subtle gradient to selected item
           gradient: isSelected
               ? LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              _paleGreen.withOpacity(0.8),
-              _paleGreen.withOpacity(0.6),
-            ],
-          )
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    _paleGreen.withOpacity(0.8),
+                    _paleGreen.withOpacity(0.6),
+                  ],
+                )
               : null,
           // Add subtle border to selected item
           border: isSelected
               ? Border.all(
-            color: _accentGreen.withOpacity(0.3),
-            width: 1,
-          )
+                  color: _accentGreen.withOpacity(0.3),
+                  width: 1,
+                )
               : null,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center, // Center the content vertically
+          mainAxisAlignment:
+              MainAxisAlignment.center, // Center the content vertically
           children: [
             // Icon with 3D effect - centered
             AnimatedContainer(
@@ -212,12 +224,12 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
                 size: isSelected ? 26 : 24,
                 shadows: isSelected
                     ? [
-                  Shadow(
-                    color: _accentGreen.withOpacity(0.5),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
+                        Shadow(
+                          color: _accentGreen.withOpacity(0.5),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ]
                     : null,
               ),
             ),
@@ -231,12 +243,12 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 shadows: isSelected
                     ? [
-                  Shadow(
-                    color: _accentGreen.withOpacity(0.5),
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
+                        Shadow(
+                          color: _accentGreen.withOpacity(0.5),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ]
                     : null,
               ),
               child: Text(label),
@@ -245,5 +257,30 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
         ),
       ),
     );
+  }
+}
+
+// Widget to keep pages alive when not visible
+class KeepAlivePage extends StatefulWidget {
+  final Widget child;
+
+  const KeepAlivePage({
+    Key? key,
+    required this.child,
+  }) : super(key: key);
+
+  @override
+  State<KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
