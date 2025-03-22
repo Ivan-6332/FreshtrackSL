@@ -3,15 +3,16 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
-// Singleton WeatherService to maintain weather data across widget instances
-class WeatherService {
-  static final WeatherService _instance = WeatherService._internal();
+class WeatherWidget extends StatefulWidget {
+  const WeatherWidget({super.key});
 
-  factory WeatherService() {
-    return _instance;
-  }
+  @override
+  State<WeatherWidget> createState() => _WeatherWidgetState();
+}
 
-  WeatherService._internal();
+class _WeatherWidgetState extends State<WeatherWidget> {
+  bool isLoading = true;
+  String? error;
 
   // List of locations in Sri Lanka
   final List<String> locations = [
@@ -26,75 +27,57 @@ class WeatherService {
   // Map to store forecast data for each location
   Map<String, List<dynamic>> forecastDataMap = {};
 
-  // Data loading status
-  bool isLoading = true;
-  String? error;
+  // Current selected location index
+  int currentLocationIndex = 0;
 
-  // Data timestamps to check if refresh is needed
-  DateTime? lastFetchTime;
+  // Page controller for swiping between locations
+  late PageController _pageController;
 
-  // Listeners to notify when data changes
-  final List<Function()> _listeners = [];
-
-  void addListener(Function() listener) {
-    _listeners.add(listener);
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: currentLocationIndex);
+    // Fetch data for all locations
+    _fetchAllWeatherData();
   }
 
-  void removeListener(Function() listener) {
-    _listeners.remove(listener);
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
-  void _notifyListeners() {
-    for (var listener in _listeners) {
-      listener();
-    }
-  }
-
-  Future<void> fetchAllWeatherData() async {
-    // Check if data is already loaded and less than 30 minutes old
-    if (lastFetchTime != null) {
-      final difference = DateTime.now().difference(lastFetchTime!);
-      if (difference.inMinutes < 30 && weatherDataMap.isNotEmpty) {
-        isLoading = false;
-        return;
-      }
-    }
-
+  Future<void> _fetchAllWeatherData() async {
     // Set loading state
-    isLoading = true;
-    error = null;
-    _notifyListeners();
+    setState(() {
+      isLoading = true;
+      error = null;
+    });
 
-    try {
-      // Fetch data for each location
-      for (String location in locations) {
-        await _fetchWeatherDataForLocation(location);
-      }
-
-      // Update fetch time
-      lastFetchTime = DateTime.now();
-    } catch (e) {
-      error = 'Failed to fetch weather data: $e';
-      print(error);
-    } finally {
-      // Set loading complete
-      isLoading = false;
-      _notifyListeners();
+    // Fetch data for each location
+    for (String location in locations) {
+      await _fetchWeatherDataForLocation(location);
     }
+
+    // Set loading complete
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Future<void> _fetchWeatherDataForLocation(String location) async {
     try {
       // Using OpenWeatherMap's free API for current weather
       final currentResponse = await http.get(Uri.parse(
-          'https://api.openweathermap.org/data/2.5/weather?q=$location&units=metric&appid=972cac91531beb7ac78ff08f5fdfadf7'));
+          'https://api.openweathermap.org/data/2.5/weather?q=$location&units=metric&appid=972cac91531beb7ac78ff08f5fdfadf7'
+      ));
 
       // Using OpenWeatherMap's free API for forecast
       final forecastResponse = await http.get(Uri.parse(
-          'https://api.openweathermap.org/data/2.5/forecast?q=$location&units=metric&appid=972cac91531beb7ac78ff08f5fdfadf7'));
+          'https://api.openweathermap.org/data/2.5/forecast?q=$location&units=metric&appid=972cac91531beb7ac78ff08f5fdfadf7'
+      ));
 
-      if (currentResponse.statusCode == 200 &&
-          forecastResponse.statusCode == 200) {
+      if (currentResponse.statusCode == 200 && forecastResponse.statusCode == 200) {
         final forecastJson = json.decode(forecastResponse.body);
         // Get forecast data for the next 5 days (with 3-hour intervals)
         // Filter to get only one forecast per day at noon (closest to 12:00)
@@ -102,8 +85,7 @@ class WeatherService {
         final Map<String, dynamic> filteredForecasts = {};
 
         for (var forecast in allForecasts) {
-          final dateTime =
-              DateTime.fromMillisecondsSinceEpoch(forecast['dt'] * 1000);
+          final dateTime = DateTime.fromMillisecondsSinceEpoch(forecast['dt'] * 1000);
           final date = DateFormat('yyyy-MM-dd').format(dateTime);
 
           if (!filteredForecasts.containsKey(date) ||
@@ -118,67 +100,18 @@ class WeatherService {
           forecasts.length = 5;
         }
 
-        weatherDataMap[location] = json.decode(currentResponse.body);
-        forecastDataMap[location] = forecasts;
+        setState(() {
+          weatherDataMap[location] = json.decode(currentResponse.body);
+          forecastDataMap[location] = forecasts;
+        });
       } else {
         // Handle error for this location but continue with others
-        print(
-            'Failed to load weather data for $location: ${currentResponse.statusCode}');
+        print('Failed to load weather data for $location: ${currentResponse.statusCode}');
       }
     } catch (e) {
       // Handle error for this location but continue with others
       print('Error fetching weather data for $location: $e');
     }
-  }
-}
-
-class WeatherWidget extends StatefulWidget {
-  const WeatherWidget({super.key});
-
-  @override
-  State<WeatherWidget> createState() => _WeatherWidgetState();
-}
-
-class _WeatherWidgetState extends State<WeatherWidget>
-    with AutomaticKeepAliveClientMixin {
-  final WeatherService _weatherService = WeatherService();
-
-  // Current selected location index
-  int currentLocationIndex = 0;
-
-  // Page controller for swiping between locations
-  late PageController _pageController;
-
-  @override
-  bool get wantKeepAlive => true; // Keep widget alive when not visible
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: currentLocationIndex);
-
-    // Add listener to update UI when weather data changes
-    _weatherService.addListener(_updateUI);
-
-    // Fetch weather data if not already loaded
-    _loadWeatherData();
-  }
-
-  void _updateUI() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future<void> _loadWeatherData() async {
-    await _weatherService.fetchAllWeatherData();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    _weatherService.removeListener(_updateUI);
-    super.dispose();
   }
 
   String _getWeatherIcon(String? iconCode) {
@@ -214,13 +147,9 @@ class _WeatherWidgetState extends State<WeatherWidget>
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
 
-    if (date.year == today.year &&
-        date.month == today.month &&
-        date.day == today.day) {
+    if (date.year == today.year && date.month == today.month && date.day == today.day) {
       return 'Today';
-    } else if (date.year == tomorrow.year &&
-        date.month == tomorrow.month &&
-        date.day == tomorrow.day) {
+    } else if (date.year == tomorrow.year && date.month == tomorrow.month && date.day == tomorrow.day) {
       return 'Tomorrow';
     } else {
       return DateFormat('E').format(date); // Return day name (Mon, Tue, etc)
@@ -229,8 +158,8 @@ class _WeatherWidgetState extends State<WeatherWidget>
 
   Widget _buildLocationWeather(String location, BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 360;
-    final weatherData = _weatherService.weatherDataMap[location];
-    final forecastData = _weatherService.forecastDataMap[location];
+    final weatherData = weatherDataMap[location];
+    final forecastData = forecastDataMap[location];
 
     if (weatherData == null || forecastData == null) {
       return SizedBox(
@@ -265,10 +194,8 @@ class _WeatherWidgetState extends State<WeatherWidget>
 
     // New details
     final humidity = weatherData['main']?['humidity']?.toString() ?? 'N/A';
-    final windSpeed =
-        weatherData['wind']?['speed']?.toStringAsFixed(1) ?? 'N/A';
-    final feelsLike =
-        weatherData['main']?['feels_like']?.toStringAsFixed(0) ?? 'N/A';
+    final windSpeed = weatherData['wind']?['speed']?.toStringAsFixed(1) ?? 'N/A';
+    final feelsLike = weatherData['main']?['feels_like']?.toStringAsFixed(0) ?? 'N/A';
     final cityName = weatherData['name'] ?? 'Unknown Location';
     final country = weatherData['sys']?['country'] ?? '';
     final fullLocation = country.isNotEmpty ? '$cityName, $country' : cityName;
@@ -330,58 +257,187 @@ class _WeatherWidgetState extends State<WeatherWidget>
                 Text(
                   condition,
                   style: TextStyle(
-                    fontSize: isSmallScreen ? 12 : 14,
+                    fontSize: isSmallScreen ? 14 : 16,
                     color: Colors.white.withOpacity(0.9),
                   ),
                 ),
               ],
             ),
+
+            const Spacer(),
+
+            // Additional details (humidity, feels like, wind)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.water_drop,
+                      color: Colors.white.withOpacity(0.9),
+                      size: isSmallScreen ? 14 : 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$humidity%',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 12 : 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.thermostat,
+                      color: Colors.white.withOpacity(0.9),
+                      size: isSmallScreen ? 14 : 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Feels like $feelsLike°C',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 12 : 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.air,
+                      color: Colors.white.withOpacity(0.9),
+                      size: isSmallScreen ? 14 : 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$windSpeed m/s',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 12 : 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ],
         ),
+
+        const SizedBox(height: 16),
+
+        // Forecast section header
+        if (forecastData.isNotEmpty)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Forecast',
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 13 : 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withOpacity(0.95),
+                ),
+              ),
+              Icon(
+                Icons.calendar_today,
+                color: Colors.white.withOpacity(0.9),
+                size: isSmallScreen ? 14 : 16,
+              ),
+            ],
+          ),
+
+        const SizedBox(height: 8),
+
+        // 5-day forecast
+        if (forecastData.isNotEmpty)
+          SizedBox(
+            height: isSmallScreen ? 70 : 80,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: forecastData.length,
+              itemBuilder: (context, index) {
+                final forecast = forecastData[index];
+                final date = DateTime.fromMillisecondsSinceEpoch(forecast['dt'] * 1000);
+                final dayName = _formatDayName(date);
+                final forecastIcon = _getWeatherIcon(forecast['weather'][0]['icon']);
+
+                return Container(
+                  width: isSmallScreen ? 70 : 80,
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        dayName,
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 11 : 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        forecastIcon,
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 20 : 24,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Required for AutomaticKeepAliveClientMixin
-
-    final isSmallScreen = MediaQuery.of(context).size.width < 360;
-
-    // Show loading state if loading
-    if (_weatherService.isLoading && _weatherService.weatherDataMap.isEmpty) {
+    if (isLoading) {
       return SizedBox(
-        height: 140,
+        height: 200,
         child: Center(
-          child: CircularProgressIndicator(
-            valueColor:
-                AlwaysStoppedAnimation<Color>(Colors.white.withOpacity(0.9)),
-            strokeWidth: 2.0,
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white.withOpacity(0.8),
+            ),
           ),
         ),
       );
     }
 
-    // Show error state if there's an error and no data
-    if (_weatherService.error != null &&
-        _weatherService.weatherDataMap.isEmpty) {
+    if (error != null) {
       return SizedBox(
-        height: 100,
+        height: 80,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.error_outline,
-                color: Colors.white.withOpacity(0.9),
+                Icons.cloud_off,
+                color: Colors.white.withOpacity(0.8),
                 size: 24,
               ),
               const SizedBox(height: 8),
               Text(
-                'Failed to load weather data',
+                'Weather unavailable',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 12,
                 ),
               ),
             ],
@@ -391,24 +447,53 @@ class _WeatherWidgetState extends State<WeatherWidget>
     }
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Location pagination indicators
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            locations.length,
+                (index) => Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: currentLocationIndex == index
+                    ? Colors.white
+                    : Colors.white.withOpacity(0.4),
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        // Hint text for swiping
+        Text(
+          'Swipe for other locations',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.white.withOpacity(0.7),
+          ),
+          textAlign: TextAlign.center,
+        ),
+
+        const SizedBox(height: 12),
+
+        // Swipeable PageView
         SizedBox(
-          height: 140,
+          height: 250, // Adjust height as needed
           child: PageView.builder(
             controller: _pageController,
-            itemCount: _weatherService.locations.length,
+            itemCount: locations.length,
             onPageChanged: (index) {
               setState(() {
                 currentLocationIndex = index;
               });
             },
             itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.all(isSmallScreen ? 8 : 16),
-                child: _buildLocationWeather(
-                    _weatherService.locations[index], context),
-              );
+              return _buildLocationWeather(locations[index], context);
             },
           ),
         ),
