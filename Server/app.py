@@ -200,7 +200,7 @@ def plot_multiple_crops(crop_ids=[1, 2, 3, 4, 5]):
 
 # Configure your Supabase credentials in the upload_to_supabase function above
 # Then call the function with your table name
-table_name = "demand_duplicate"
+table_name = "demand"
 upload_to_supabase(weekly_df, table_name)
 
 
