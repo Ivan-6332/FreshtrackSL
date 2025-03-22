@@ -3,10 +3,12 @@ import 'package:intl/intl.dart';
 
 class Calendar extends StatefulWidget {
   final EdgeInsetsGeometry margin;
+  final Function(int)? onWeekChange; // Callback to provide selected week number
 
   const Calendar({
     super.key,
     this.margin = const EdgeInsets.all(16),
+    this.onWeekChange,
   });
 
   @override
@@ -16,7 +18,10 @@ class Calendar extends StatefulWidget {
 class _CalendarState extends State<Calendar> {
   // Calendar state variables
   late DateTime _currentWeekStart;
+  late DateTime _currentWeekEnd;
   late List<DateTime> _weekDays;
+  late int _weekNumber;
+  final int _totalWeeks = 52;
 
   // Calendar colors
   final Color _calendarBg = Colors.white;
@@ -38,44 +43,80 @@ class _CalendarState extends State<Calendar> {
   void _initializeCalendar() {
     // Initialize with current week
     final now = DateTime.now();
-    // Find the start of the current week (Sunday or Monday depending on locale)
+
+    // Find the start of the current week (Monday)
     _currentWeekStart = now.subtract(Duration(days: now.weekday - 1));
-    if (_currentWeekStart.day > now.day) {
-      // If we went to previous month, adjust
-      _currentWeekStart = now.subtract(Duration(days: now.weekday + 6));
-    }
+
+    // Find the end of the current week (Sunday)
+    _currentWeekEnd = _currentWeekStart.add(const Duration(days: 6));
+
     _updateWeekDays();
+    _calculateWeekNumber();
+
+    // Notify parent widget of initial week number
+    if (widget.onWeekChange != null) {
+      widget.onWeekChange!(_weekNumber);
+    }
   }
 
   void _updateWeekDays() {
     _weekDays = List.generate(7, (index) =>
         _currentWeekStart.add(Duration(days: index))
     );
+    _currentWeekEnd = _weekDays.last;
+  }
+
+  void _calculateWeekNumber() {
+    _weekNumber = getWeekNumber(_currentWeekStart);
+  }
+
+  // Function to calculate ISO 8601 Week Number
+  int getWeekNumber(DateTime date) {
+    // ISO 8601 weeks start on Monday and the first Thursday determines week 1
+    DateTime thursday = date.add(Duration(days: 4 - date.weekday)); // Move to nearest Thursday
+    DateTime firstDayOfYear = DateTime(thursday.year, 1, 1);
+    int daysSinceFirst = thursday.difference(firstDayOfYear).inDays;
+    return ((daysSinceFirst / 7).floor()) + 1;
   }
 
   void _goToPreviousWeek() {
     setState(() {
       _currentWeekStart = _currentWeekStart.subtract(const Duration(days: 7));
       _updateWeekDays();
+      _calculateWeekNumber();
     });
+
+    // Notify parent widget of week change
+    if (widget.onWeekChange != null) {
+      widget.onWeekChange!(_weekNumber);
+    }
   }
 
   void _goToNextWeek() {
     setState(() {
       _currentWeekStart = _currentWeekStart.add(const Duration(days: 7));
       _updateWeekDays();
+      _calculateWeekNumber();
     });
+
+    // Notify parent widget of week change
+    if (widget.onWeekChange != null) {
+      widget.onWeekChange!(_weekNumber);
+    }
   }
 
   void _goToCurrentWeek() {
     setState(() {
       final now = DateTime.now();
       _currentWeekStart = now.subtract(Duration(days: now.weekday - 1));
-      if (_currentWeekStart.day > now.day) {
-        _currentWeekStart = now.subtract(Duration(days: now.weekday + 6));
-      }
       _updateWeekDays();
+      _calculateWeekNumber();
     });
+
+    // Notify parent widget of week change
+    if (widget.onWeekChange != null) {
+      widget.onWeekChange!(_weekNumber);
+    }
 
     // Show feedback to user
     ScaffoldMessenger.of(context).showSnackBar(
@@ -94,12 +135,6 @@ class _CalendarState extends State<Calendar> {
   bool _isCurrentWeek() {
     final now = DateTime.now();
     final currentWeekStart = now.subtract(Duration(days: now.weekday - 1));
-    if (currentWeekStart.day > now.day) {
-      // If we went to previous month, adjust
-      return _currentWeekStart.year == now.year &&
-          _currentWeekStart.month == now.month &&
-          _currentWeekStart.day == now.subtract(Duration(days: now.weekday + 6)).day;
-    }
     return _currentWeekStart.year == currentWeekStart.year &&
         _currentWeekStart.month == currentWeekStart.month &&
         _currentWeekStart.day == currentWeekStart.day;
@@ -133,62 +168,75 @@ class _CalendarState extends State<Calendar> {
       ),
       child: Column(
         children: [
-          // Calendar header with week range and navigation
+          // Header text showing the date range
+          Padding(
+            padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+            child: Text(
+              "Here's the insights for : ${DateFormat('d MMM').format(_currentWeekStart)} - ${DateFormat('d MMM yyyy').format(_currentWeekEnd)}",
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          // Subheader text
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              "Use the toggles above to change the week.",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+
+          // Week selector with navigation
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Back button
-                IconButton(
-                  icon: Icon(
-                    Icons.chevron_left,
-                    color: _navigationIconColor,
-                    size: 28,
-                  ),
-                  onPressed: _goToPreviousWeek,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.black,
+                  width: 2,
                 ),
-
-                // Week range text with border
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.grey.shade300,
-                      width: 1,
+                borderRadius: BorderRadius.circular(40),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Back button
+                  IconButton(
+                    icon: const Icon(
+                      Icons.chevron_left,
+                      size: 32,
                     ),
-                    borderRadius: BorderRadius.circular(20),
+                    onPressed: _goToPreviousWeek,
                   ),
-                  child: Text(
-                    '${DateFormat('d MMM').format(_weekDays.first)} - ${DateFormat('d MMM').format(_weekDays.last)} ${DateFormat('yyyy').format(_weekDays.last)}',
-                    style: TextStyle(
-                      color: _primaryGreen,
-                      fontWeight: FontWeight.w600,
-                      fontSize: isSmallScreen ? 13 : 14,
+
+                  // Week text
+                  Text(
+                    'Week $_weekNumber of $_totalWeeks',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
 
-                // Forward button
-                IconButton(
-                  icon: Icon(
-                    Icons.chevron_right,
-                    color: _navigationIconColor,
-                    size: 28,
+                  // Forward button
+                  IconButton(
+                    icon: const Icon(
+                      Icons.chevron_right,
+                      size: 32,
+                    ),
+                    onPressed: _goToNextWeek,
                   ),
-                  onPressed: _goToNextWeek,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
