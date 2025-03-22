@@ -5,6 +5,7 @@ import '../../components/greeting.dart';
 import '../../components/search_bar.dart';
 import '../../components/highlights.dart';
 import '../../components/favorites.dart';
+import '../../components/weather_widget.dart'; // New import
 import '../config/app_localizations.dart';
 import '../../services/database_service.dart';
 
@@ -20,7 +21,7 @@ class _HomeTabState extends State<HomeTab> {
   List<Crop> favorites = [];
   bool isLoading = true;
   String? error;
-  bool notificationsMuted = false; // Track notification state
+  // Removed: bool notificationsMuted = false;
 
   // Calendar state variables
   late DateTime _currentWeekStart;
@@ -148,25 +149,7 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
-  void _toggleNotifications() {
-    setState(() {
-      notificationsMuted = !notificationsMuted;
-    });
-    // Show feedback to user
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          notificationsMuted
-              ? 'Notifications muted'
-              : 'Notifications unmuted',
-          style: const TextStyle(color: Colors.white),
-        ),
-        backgroundColor: _primaryGreen,
-        duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
+  // Removed: void _toggleNotifications() method
 
   // Check if the given day is today
   bool _isToday(DateTime day) {
@@ -237,55 +220,26 @@ class _HomeTabState extends State<HomeTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Row containing greeting and notification icon properly aligned
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // Greeting with white text
-                              Expanded(
-                                child: Theme(
-                                  data: Theme.of(context).copyWith(
-                                    textTheme: Theme.of(context).textTheme.apply(
-                                      bodyColor: _lightText,
-                                      displayColor: _lightText,
-                                    ),
-                                  ),
-                                  child: const Greeting(),
-                                ),
+                          // Greeting component with theme
+                          Theme(
+                            data: Theme.of(context).copyWith(
+                              textTheme: Theme.of(context).textTheme.apply(
+                                bodyColor: _lightText,
+                                displayColor: _lightText,
                               ),
+                            ),
+                            child: const Greeting(),
+                          ),
 
-                              // Notification icon with animation
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                transitionBuilder: (Widget child, Animation<double> animation) {
-                                  return ScaleTransition(scale: animation, child: child);
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: IconButton(
-                                    key: ValueKey<bool>(notificationsMuted),
-                                    icon: Icon(
-                                      notificationsMuted
-                                          ? Icons.notifications_off_rounded
-                                          : Icons.notifications_active_rounded,
-                                      color: _lightText,
-                                      size: 28,
-                                    ),
-                                    onPressed: _toggleNotifications,
-                                    tooltip: notificationsMuted
-                                        ? 'Unmute notifications'
-                                        : 'Mute notifications',
-                                    padding: const EdgeInsets.all(8),
-                                    constraints: const BoxConstraints(),
-                                    iconSize: 28,
-                                  ),
-                                ),
+                          // Weather widget added below the greeting
+                          Theme(
+                            data: Theme.of(context).copyWith(
+                              textTheme: Theme.of(context).textTheme.apply(
+                                bodyColor: _lightText,
+                                displayColor: _lightText,
                               ),
-                            ],
+                            ),
+                            child: const WeatherWidget(),
                           ),
 
                           // Add extra padding at the bottom for the curve
@@ -374,69 +328,6 @@ class _HomeTabState extends State<HomeTab> {
                               constraints: const BoxConstraints(),
                             ),
                           ],
-                        ),
-                      ),
-
-                      // Days of week display
-                      Container(
-                        height: isSmallScreen ? 90 : 100,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 7,
-                          itemBuilder: (context, index) {
-                            final day = _weekDays[index];
-                            final isToday = _isToday(day);
-
-                            return GestureDetector(
-                              onTap: () {
-                                // Handle day selection (you can add functionality here)
-                              },
-                              child: Container(
-                                width: (screenSize.width - (isSmallScreen ? 16 : 32)) / 7,
-                                margin: const EdgeInsets.symmetric(horizontal: 2),
-                                decoration: BoxDecoration(
-                                  color: isToday ? _todayBg : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // Weekday (Mon, Tue, etc.)
-                                    Text(
-                                      DateFormat('E').format(day).substring(0, 1),
-                                      style: TextStyle(
-                                        fontSize: isSmallScreen ? 12 : 13,
-                                        fontWeight: FontWeight.w500,
-                                        color: _weekdayTextColor,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-
-                                    // Day number with circle for today
-                                    Container(
-                                      width: isSmallScreen ? 32 : 36,
-                                      height: isSmallScreen ? 32 : 36,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: isToday ? _selectedDayBg : Colors.transparent,
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          day.day.toString(),
-                                          style: TextStyle(
-                                            fontSize: isSmallScreen ? 15 : 16,
-                                            fontWeight: isToday ? FontWeight.w600 : FontWeight.w500,
-                                            color: isToday ? _selectedDayTextColor : _dayTextColor,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
                         ),
                       ),
 
