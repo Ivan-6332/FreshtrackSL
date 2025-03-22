@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../providers/week_provider.dart';
 
 class Calendar extends StatefulWidget {
   final EdgeInsetsGeometry margin;
-  final Function(int)? onWeekChange; // Callback to provide selected week number
 
   const Calendar({
     super.key,
     this.margin = const EdgeInsets.all(16),
-    this.onWeekChange,
   });
 
   @override
@@ -20,7 +20,6 @@ class _CalendarState extends State<Calendar> {
   late DateTime _currentWeekStart;
   late DateTime _currentWeekEnd;
   late List<DateTime> _weekDays;
-  late int _weekNumber;
   final int _totalWeeks = 52;
 
   // Calendar colors
@@ -51,72 +50,46 @@ class _CalendarState extends State<Calendar> {
     _currentWeekEnd = _currentWeekStart.add(const Duration(days: 6));
 
     _updateWeekDays();
-    _calculateWeekNumber();
-
-    // Notify parent widget of initial week number
-    if (widget.onWeekChange != null) {
-      widget.onWeekChange!(_weekNumber);
-    }
   }
 
   void _updateWeekDays() {
-    _weekDays = List.generate(7, (index) =>
-        _currentWeekStart.add(Duration(days: index))
-    );
+    _weekDays = List.generate(
+        7, (index) => _currentWeekStart.add(Duration(days: index)));
     _currentWeekEnd = _weekDays.last;
   }
 
-  void _calculateWeekNumber() {
-    _weekNumber = getWeekNumber(_currentWeekStart);
-  }
-
-  // Function to calculate ISO 8601 Week Number
-  int getWeekNumber(DateTime date) {
-    // ISO 8601 weeks start on Monday and the first Thursday determines week 1
-    DateTime thursday = date.add(Duration(days: 4 - date.weekday)); // Move to nearest Thursday
-    DateTime firstDayOfYear = DateTime(thursday.year, 1, 1);
-    int daysSinceFirst = thursday.difference(firstDayOfYear).inDays;
-    return ((daysSinceFirst / 7).floor()) + 1;
-  }
-
   void _goToPreviousWeek() {
+    // Use WeekProvider to change the week
+    final weekProvider = Provider.of<WeekProvider>(context, listen: false);
+    weekProvider.previousWeek();
+
     setState(() {
       _currentWeekStart = _currentWeekStart.subtract(const Duration(days: 7));
       _updateWeekDays();
-      _calculateWeekNumber();
     });
-
-    // Notify parent widget of week change
-    if (widget.onWeekChange != null) {
-      widget.onWeekChange!(_weekNumber);
-    }
   }
 
   void _goToNextWeek() {
+    // Use WeekProvider to change the week
+    final weekProvider = Provider.of<WeekProvider>(context, listen: false);
+    weekProvider.nextWeek();
+
     setState(() {
       _currentWeekStart = _currentWeekStart.add(const Duration(days: 7));
       _updateWeekDays();
-      _calculateWeekNumber();
     });
-
-    // Notify parent widget of week change
-    if (widget.onWeekChange != null) {
-      widget.onWeekChange!(_weekNumber);
-    }
   }
 
   void _goToCurrentWeek() {
+    // Use WeekProvider to reset to the current week
+    final weekProvider = Provider.of<WeekProvider>(context, listen: false);
+    weekProvider.resetToCurrentWeek();
+
     setState(() {
       final now = DateTime.now();
       _currentWeekStart = now.subtract(Duration(days: now.weekday - 1));
       _updateWeekDays();
-      _calculateWeekNumber();
     });
-
-    // Notify parent widget of week change
-    if (widget.onWeekChange != null) {
-      widget.onWeekChange!(_weekNumber);
-    }
 
     // Show feedback to user
     ScaffoldMessenger.of(context).showSnackBar(
@@ -151,6 +124,10 @@ class _CalendarState extends State<Calendar> {
     // Get screen size for responsive design
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 360;
+
+    // Get the selected week from the provider
+    final weekProvider = Provider.of<WeekProvider>(context);
+    final selectedWeek = weekProvider.selectedWeek;
 
     return Container(
       margin: widget.margin,
@@ -220,7 +197,7 @@ class _CalendarState extends State<Calendar> {
 
                   // Week text
                   Text(
-                    'Week $_weekNumber of $_totalWeeks',
+                    'Week $selectedWeek of $_totalWeeks',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

@@ -6,6 +6,8 @@ import '../../components/crop_card.dart';
 import '../../components/category_grid.dart';
 import '../config/app_localizations.dart';
 import '../../services/database_service.dart';
+import 'package:provider/provider.dart';
+import '../../providers/week_provider.dart';
 
 class ExploreTab extends StatefulWidget {
   const ExploreTab({super.key});
@@ -34,6 +36,18 @@ class _ExploreTabState extends State<ExploreTab> {
     _loadData();
   }
 
+  int? _previousWeekNumber;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final weekProvider = Provider.of<WeekProvider>(context);
+    if (_previousWeekNumber != weekProvider.selectedWeek) {
+      _previousWeekNumber = weekProvider.selectedWeek;
+      _loadData();
+    }
+  }
+
   Future<void> _loadData() async {
     try {
       setState(() {
@@ -41,8 +55,13 @@ class _ExploreTabState extends State<ExploreTab> {
         error = null;
       });
 
+      // Get the selected week from the provider
+      final weekProvider = Provider.of<WeekProvider>(context, listen: false);
+      final selectedWeek = weekProvider.selectedWeek;
+
       final databaseService = DatabaseService();
-      final cropsData = await databaseService.getCropsWithDemand();
+      final cropsData =
+          await databaseService.getCropsWithDemand(weekNo: selectedWeek);
       final categoriesData = await databaseService.getCategories();
 
       setState(() {

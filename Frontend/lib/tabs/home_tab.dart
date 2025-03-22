@@ -9,6 +9,8 @@ import '../../components/weather_widget.dart'; // New import
 import '../../components/calendar.dart'; // New calendar component import
 import '../config/app_localizations.dart';
 import '../../services/database_service.dart';
+import 'package:provider/provider.dart';
+import '../../providers/week_provider.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -40,6 +42,18 @@ class _HomeTabState extends State<HomeTab> {
     _loadData();
   }
 
+  int? _previousWeekNumber;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final weekProvider = Provider.of<WeekProvider>(context);
+    if (_previousWeekNumber != weekProvider.selectedWeek) {
+      _previousWeekNumber = weekProvider.selectedWeek;
+      _loadData();
+    }
+  }
+
   Future<void> _loadData() async {
     try {
       setState(() {
@@ -47,9 +61,15 @@ class _HomeTabState extends State<HomeTab> {
         error = null;
       });
 
+      // Get the selected week from the provider
+      final weekProvider = Provider.of<WeekProvider>(context, listen: false);
+      final selectedWeek = weekProvider.selectedWeek;
+
       final databaseService = DatabaseService();
-      final cropsData = await databaseService.getCropsWithDemand();
-      final favoritesData = await databaseService.getUserFavorites();
+      final cropsData =
+          await databaseService.getCropsWithDemand(weekNo: selectedWeek);
+      final favoritesData =
+          await databaseService.getUserFavorites(weekNo: selectedWeek);
 
       setState(() {
         crops = cropsData.map((json) => Crop.fromJson(json)).toList();
@@ -85,148 +105,151 @@ class _HomeTabState extends State<HomeTab> {
           child: isLoading
               ? const Center(child: CircularProgressIndicator())
               : error != null
-              ? Center(child: Text(error!))
-              : SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header card with gradient background and curved bottom border
-                Container(
-                  margin: EdgeInsets.only(
-                    left: isSmallScreen ? 8 : 16,
-                    right: isSmallScreen ? 8 : 16,
-                    top: isSmallScreen ? 16 : 24,
-                    bottom: 0,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [_headerGreen, _headerTeal],
-                      stops: const [0.3, 1.0],
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(16),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 6,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  // Create a custom clipper for the curved bottom border
-                  child: ClipPath(
-                    clipper: CurvedBottomClipper(),
-                    child: Padding(
-                      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                  ? Center(child: Text(error!))
+                  : SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Greeting component with theme
-                          Theme(
-                            data: Theme.of(context).copyWith(
-                              textTheme: Theme.of(context).textTheme.apply(
-                                bodyColor: _lightText,
-                                displayColor: _lightText,
+                          // Header card with gradient background and curved bottom border
+                          Container(
+                            margin: EdgeInsets.only(
+                              left: isSmallScreen ? 8 : 16,
+                              right: isSmallScreen ? 8 : 16,
+                              top: isSmallScreen ? 16 : 24,
+                              bottom: 0,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [_headerGreen, _headerTeal],
+                                stops: const [0.3, 1.0],
+                              ),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(16),
+                                topRight: Radius.circular(16),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            // Create a custom clipper for the curved bottom border
+                            child: ClipPath(
+                              clipper: CurvedBottomClipper(),
+                              child: Padding(
+                                padding:
+                                    EdgeInsets.all(isSmallScreen ? 12 : 16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Greeting component with theme
+                                    Theme(
+                                      data: Theme.of(context).copyWith(
+                                        textTheme:
+                                            Theme.of(context).textTheme.apply(
+                                                  bodyColor: _lightText,
+                                                  displayColor: _lightText,
+                                                ),
+                                      ),
+                                      child: const Greeting(),
+                                    ),
+
+                                    // Weather widget added below the greeting
+                                    Theme(
+                                      data: Theme.of(context).copyWith(
+                                        textTheme:
+                                            Theme.of(context).textTheme.apply(
+                                                  bodyColor: _lightText,
+                                                  displayColor: _lightText,
+                                                ),
+                                      ),
+                                      child: const WeatherWidget(),
+                                    ),
+
+                                    // Add extra padding at the bottom for the curve
+                                    SizedBox(height: isSmallScreen ? 8 : 16),
+                                  ],
+                                ),
                               ),
                             ),
-                            child: const Greeting(),
                           ),
 
-                          // Weather widget added below the greeting
-                          Theme(
-                            data: Theme.of(context).copyWith(
-                              textTheme: Theme.of(context).textTheme.apply(
-                                bodyColor: _lightText,
-                                displayColor: _lightText,
-                              ),
+                          SizedBox(height: isSmallScreen ? 8 : 12),
+
+                          // Weekly Calendar section - now using the Calendar component
+                          Calendar(
+                            margin: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 8 : 16,
+                              vertical: 8,
                             ),
-                            child: const WeatherWidget(),
                           ),
 
-                          // Add extra padding at the bottom for the curve
-                          SizedBox(height: isSmallScreen ? 8 : 16),
+                          SizedBox(height: isSmallScreen ? 8 : 12),
+
+                          // Highlights section
+                          Container(
+                            margin: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                            padding: const EdgeInsets.all(16),
+                            width: double.infinity,
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                primaryColor: _primaryGreen,
+                                colorScheme: ColorScheme.dark(
+                                  primary: _primaryGreen,
+                                  secondary: Colors.greenAccent,
+                                  surface: _darkBackground,
+                                ),
+                                textTheme: Theme.of(context).textTheme.copyWith(
+                                      titleMedium: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: _lightText,
+                                        letterSpacing: 0.2,
+                                      ),
+                                      bodyMedium: TextStyle(
+                                        fontSize: 14,
+                                        color: _lightText.withOpacity(0.8),
+                                      ),
+                                    ),
+                              ),
+                              child: Highlights(crops: crops),
+                            ),
+                          ),
+
+                          // Favorites section
+                          Container(
+                            margin: const EdgeInsets.fromLTRB(12, 0, 12, 32),
+                            padding: const EdgeInsets.all(16),
+                            width: double.infinity,
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                primaryColor: _primaryGreen,
+                                colorScheme: ColorScheme.dark(
+                                  primary: _primaryGreen,
+                                  secondary: Colors.greenAccent,
+                                  surface: _darkBackground,
+                                ),
+                                textTheme: Theme.of(context).textTheme.copyWith(
+                                      titleMedium: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: _lightText,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                              ),
+                              child: FavoritesWithHeartIcons(crops: favorites),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                ),
-
-                SizedBox(height: isSmallScreen ? 8 : 12),
-
-                // Weekly Calendar section - now using the Calendar component
-                Calendar(
-                  margin: EdgeInsets.symmetric(
-                    horizontal: isSmallScreen ? 8 : 16,
-                    vertical: 8,
-                  ),
-                ),
-
-                SizedBox(height: isSmallScreen ? 8 : 12),
-
-                // Highlights section
-                Container(
-                  margin: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-                  padding: const EdgeInsets.all(16),
-                  width: double.infinity,
-                  child: Theme(
-                    data: Theme.of(context).copyWith(
-                      primaryColor: _primaryGreen,
-                      colorScheme: ColorScheme.dark(
-                        primary: _primaryGreen,
-                        secondary: Colors.greenAccent,
-                        surface: _darkBackground,
-                      ),
-                      textTheme: Theme.of(context).textTheme.copyWith(
-                        titleMedium: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: _lightText,
-                          letterSpacing: 0.2,
-                        ),
-                        bodyMedium: TextStyle(
-                          fontSize: 14,
-                          color: _lightText.withOpacity(0.8),
-                        ),
-                      ),
-                    ),
-                    child: Highlights(crops: crops),
-                  ),
-                ),
-
-                // Favorites section
-                Container(
-                  margin: const EdgeInsets.fromLTRB(12, 0, 12, 32),
-                  padding: const EdgeInsets.all(16),
-                  width: double.infinity,
-                  child: Theme(
-                    data: Theme.of(context).copyWith(
-                      primaryColor: _primaryGreen,
-                      colorScheme: ColorScheme.dark(
-                        primary: _primaryGreen,
-                        secondary: Colors.greenAccent,
-                        surface: _darkBackground,
-                      ),
-                      textTheme: Theme.of(context).textTheme.copyWith(
-                        titleMedium: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: _lightText,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ),
-                    child: FavoritesWithHeartIcons(crops: favorites),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );

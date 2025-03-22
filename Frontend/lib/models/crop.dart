@@ -1,6 +1,6 @@
 // lib/models/crop.dart
 class Crop {
-  final int id;
+  final String id;
   final String name;
   final double demand;
   final bool isFavorited;
@@ -18,12 +18,16 @@ class Crop {
 
   factory Crop.fromJson(Map<String, dynamic> json) {
     return Crop(
-      id: json['id'],
-      name: json['name'],
-      demand: json['demand'].toDouble(),
+      id: json['crop_id'].toString(),
+      name: json['crop_name'] ?? json['name'] ?? '',
+      demand: json['demand'] == null
+          ? 0.0
+          : (json['demand'] is double
+              ? json['demand']
+              : (json['demand'] is int ? json['demand'].toDouble() : 0.0)),
       isFavorited: json['isFavorited'] ?? false,
-      category: json['category'],
-      pic: json['pic'],
+      category: json['crop_category'] ?? json['category'] ?? '',
+      pic: json['crop_pic'] ?? json['pic'] ?? '🌱',
     );
   }
 }
