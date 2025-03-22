@@ -6,7 +6,7 @@ from supabase import create_client
 import os
 
 # Load the monthly data
-df = pd.read_csv('2021.csv')
+df = pd.read_csv('data.csv')
 
 
 # Function to convert month-based data to week-based predictions
@@ -75,10 +75,10 @@ def month_to_week_predictions(df):
                     'raw_demand': weekly_demand  # Store the raw demand temporarily
                 })
 
-        # Calculate the maximum demand for this crop
+        # Calculate the maximum demand for THIS SPECIFIC CROP
         max_demand = max(item['raw_demand'] for item in crop_weekly_demands)
 
-        # Update each entry with the percentage demand
+        # Update each entry with the percentage demand for this crop
         for item in crop_weekly_demands:
             percentage_demand = (item['raw_demand'] / max_demand) * 100
             # Round to 2 decimal places
@@ -104,6 +104,28 @@ def month_to_week_predictions(df):
     weekly_df = weekly_df[['id', 'crop_id', 'week_no', 'demand']]
 
     return weekly_df
+
+
+# Function to validate that each crop has a maximum demand of 100%
+def validate_max_percentages(weekly_df):
+    # Group by crop_id and find the maximum demand for each
+    max_by_crop = weekly_df.groupby('crop_id')['demand'].max().reset_index()
+
+    # Print validation summary
+    print("Maximum percentage by crop_id:")
+    for _, row in max_by_crop.iterrows():
+        crop_id = row['crop_id']
+        max_pct = row['demand']
+        print(f"Crop {crop_id}: {max_pct}%")
+
+    # Verify all maxes are 100%
+    all_100 = all(max_by_crop['demand'] == 100)
+    print(f"\nAll crops have 100% as maximum: {all_100}")
+
+    # Count how many rows have 100% demand
+    count_100 = len(weekly_df[weekly_df['demand'] == 100])
+    print(f"Number of weeks with 100% demand: {count_100}")
+    print(f"Number of unique crops: {weekly_df['crop_id'].nunique()}")
 
 
 # Function to upload data to Supabase
@@ -140,6 +162,9 @@ def upload_to_supabase(df, table_name):
 # Generate weekly predictions with percentage demand
 weekly_df = month_to_week_predictions(df)
 
+# Validate that each crop has at least one week with 100% demand
+validate_max_percentages(weekly_df)
+
 # Save the weekly predictions to a CSV file
 weekly_df.to_csv('weekly_demand_predictions_percentage.csv', index=False)
 
@@ -147,26 +172,29 @@ print(f"Successfully generated weekly predictions as percentages for {len(weekly
 print("Weekly percentage demand data saved to 'weekly_demand_predictions_percentage.csv'")
 
 
-# Optional visualization of the percentage demand for a sample crop
-def plot_sample_crop_percentage(crop_id=1):
-    # Filter data for the selected crop
-    crop_weekly = weekly_df[weekly_df['crop_id'] == crop_id]
+# Optional visualization to show percentage demand for multiple crops
+def plot_multiple_crops(crop_ids=[1, 2, 3, 4, 5]):
+    plt.figure(figsize=(14, 8))
 
-    plt.figure(figsize=(12, 6))
-    plt.plot(crop_weekly['week_no'], crop_weekly['demand'], 'o-', label=f'Weekly Demand % (Crop {crop_id})')
+    for crop_id in crop_ids:
+        if crop_id in weekly_df['crop_id'].unique():
+            # Filter data for the selected crop
+            crop_weekly = weekly_df[weekly_df['crop_id'] == crop_id]
+            plt.plot(crop_weekly['week_no'], crop_weekly['demand'], 'o-', label=f'Crop {crop_id}')
+
     plt.xlabel('Week')
-    plt.ylabel('Demand (% of Maximum)')
-    plt.title(f'Weekly Demand Percentage for Crop {crop_id}')
+    plt.ylabel('Demand (% of Maximum per Crop)')
+    plt.title('Weekly Demand Percentage for Multiple Crops')
     plt.ylim(0, 105)  # Set y-axis to show 0-105%
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f'crop_{crop_id}_demand_percentage.png')
+    plt.savefig('multiple_crops_demand_percentage.png')
     plt.close()
 
 
-# Uncomment to generate a visualization for a specific crop
-# plot_sample_crop_percentage(crop_id=1)
+# Uncomment to generate a visualization for multiple crops
+# plot_multiple_crops(crop_ids=[1, 2, 3, 4, 5])
 
 # To upload to Supabase, uncomment and configure the following lines:
 """
