@@ -132,7 +132,7 @@ def validate_max_percentages(weekly_df):
 def upload_to_supabase(df, table_name):
     # Supabase credentials
     supabase_url = "https://hjdrdccgsiefrvwttblm.supabase.co"
-    supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqZHJkY2Nnc2llZnJ2d3R0YmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyNTExMzAsImV4cCI6MjA1NjgyNzEzMH0.-HLlpTgQrxe8HW5a6B84lhB-sq6Gm0yMPPz4c44HKyU"
+    supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqZHJkY2Nnc2llZnJ2d3R0YmxtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MTI1MTEzMCwiZXhwIjoyMDU2ODI3MTMwfQ.k6bC1LjLHcElkoiq5cYhJv3Y-U1AaD28bILQ-gTpZeE"
 
     # Create Supabase client
     supabase = create_client(supabase_url, supabase_key)
