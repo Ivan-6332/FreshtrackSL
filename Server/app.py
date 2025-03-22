@@ -130,9 +130,9 @@ def validate_max_percentages(weekly_df):
 
 # Function to upload data to Supabase
 def upload_to_supabase(df, table_name):
-    # Supabase credentials - replace with your own
-    supabase_url = "YOUR_SUPABASE_URL"
-    supabase_key = "YOUR_SUPABASE_API_KEY"
+    # Supabase credentials
+    supabase_url = "https://hjdrdccgsiefrvwttblm.supabase.co"
+    supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqZHJkY2Nnc2llZnJ2d3R0YmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyNTExMzAsImV4cCI6MjA1NjgyNzEzMH0.-HLlpTgQrxe8HW5a6B84lhB-sq6Gm0yMPPz4c44HKyU"
 
     # Create Supabase client
     supabase = create_client(supabase_url, supabase_key)
@@ -197,11 +197,11 @@ def plot_multiple_crops(crop_ids=[1, 2, 3, 4, 5]):
 # plot_multiple_crops(crop_ids=[1, 2, 3, 4, 5])
 
 # To upload to Supabase, uncomment and configure the following lines:
-"""
+
 # Configure your Supabase credentials in the upload_to_supabase function above
 # Then call the function with your table name
-table_name = "weekly_crop_demand"
+table_name = "demand_duplicate"
 upload_to_supabase(weekly_df, table_name)
-"""
+
 
 print("Done!")
