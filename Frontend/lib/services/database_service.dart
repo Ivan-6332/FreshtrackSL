@@ -3,43 +3,81 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class DatabaseService {
   final _supabase = Supabase.instance.client;
 
-  // Get all crops with their demand
+  // Cache storage
+  final Map<String, List<Map<String, dynamic>>> _cropCache =
+      {}; // Cache for crops by week
+  final Map<String, List<Map<String, dynamic>>> _favoriteCache =
+      {}; // Cache for favorites by week
+  List<Map<String, dynamic>>? _categoriesCache; // Cache for categories
+
+  // Get all crops with their demand - optimized with batched queries and caching
   Future<List<Map<String, dynamic>>> getCropsWithDemand({int? weekNo}) async {
     try {
       // If no week number is specified, use the current week
       final currentWeekNo = weekNo ?? _getCurrentWeekNumber();
 
-      // Get all crops
+      // Check if we have this data in cache
+      final cacheKey = 'week_$currentWeekNo';
+      if (_cropCache.containsKey(cacheKey)) {
+        return _cropCache[cacheKey]!;
+      }
+
+      // More efficient query - get all crops in one query
       final cropsResponse = await _supabase.from('crop').select('*');
 
       if (cropsResponse == null) {
         throw Exception('Failed to fetch crops');
       }
 
-      // Convert response to List<Map<String, dynamic>> if it's not already
+      // Convert response to List<Map<String, dynamic>>
       final List<Map<String, dynamic>> crops = cropsResponse is List
           ? List<Map<String, dynamic>>.from(cropsResponse.map(
               (item) => item is Map ? Map<String, dynamic>.from(item) : {}))
           : [];
 
-      // For each crop, get its demand for the specified week
-      for (var i = 0; i < crops.length; i++) {
-        final cropId = crops[i]['crop_id'];
-
-        // Get demand for the current crop and specified week
-        final demandResponse = await _supabase
-            .from('demand')
-            .select('demand')
-            .eq('crop_id', cropId)
-            .eq('week_no', currentWeekNo)
-            .maybeSingle();
-
-        // Set the demand value or default to 0 if not found
-        crops[i]['demand'] = demandResponse != null &&
-                demandResponse['demand'] != null
-            ? (demandResponse['demand'] is num ? demandResponse['demand'] : 0.0)
-            : 0.0;
+      if (crops.isEmpty) {
+        return [];
       }
+
+      // Extract all crop_ids to fetch demand in one batch query
+      final List<String> cropIds =
+          crops.map((crop) => crop['crop_id'].toString()).toList();
+
+      // Batch fetch all demand data for the specified week and all crops
+      final demandsResponse = await _supabase
+          .from('demand')
+          .select('crop_id, demand')
+          .eq('week_no', currentWeekNo)
+          .in_('crop_id', cropIds);
+
+      // Create a map for quick lookup of demand by crop_id
+      final Map<String, double> demandByCropId = {};
+      if (demandsResponse != null && demandsResponse is List) {
+        for (var item in demandsResponse) {
+          if (item is Map &&
+              item['crop_id'] != null &&
+              item['demand'] != null) {
+            final cropId = item['crop_id'].toString();
+            final demand = item['demand'] is num
+                ? (item['demand'] is int
+                    ? item['demand'].toDouble()
+                    : item['demand'])
+                : 0.0;
+            demandByCropId[cropId] = demand;
+          }
+        }
+      }
+
+      // Merge crop data with demand data
+      for (var i = 0; i < crops.length; i++) {
+        final cropId = crops[i]['crop_id'].toString();
+        crops[i]['demand'] = demandByCropId[cropId] ??
+            0.0; // Use 0.0 as default if no demand found
+        crops[i]['isFavorited'] = false; // Default value
+      }
+
+      // Store in cache
+      _cropCache[cacheKey] = crops;
 
       return crops;
     } catch (e) {
@@ -48,11 +86,17 @@ class DatabaseService {
     }
   }
 
-  // Get user's favorite crops
+  // Get user's favorite crops - optimized with batched queries and caching
   Future<List<Map<String, dynamic>>> getUserFavorites({int? weekNo}) async {
     try {
       // If no week number is specified, use the current week
       final currentWeekNo = weekNo ?? _getCurrentWeekNumber();
+
+      // Check cache first
+      final cacheKey = 'week_$currentWeekNo';
+      if (_favoriteCache.containsKey(cacheKey)) {
+        return _favoriteCache[cacheKey]!;
+      }
 
       // Get the current user's ID
       final userId = _supabase.auth.currentUser?.id;
@@ -60,7 +104,15 @@ class DatabaseService {
         return [];
       }
 
-      // Get the user's favorite crops
+      // Get all crops first (either from cache or fetch new)
+      List<Map<String, dynamic>> allCrops;
+      if (_cropCache.containsKey(cacheKey)) {
+        allCrops = List.from(_cropCache[cacheKey]!);
+      } else {
+        allCrops = await getCropsWithDemand(weekNo: currentWeekNo);
+      }
+
+      // Efficiently get the user's favorites in a single query
       final favoritesResponse = await _supabase
           .from('favorites')
           .select('crop_id')
@@ -71,8 +123,8 @@ class DatabaseService {
         return [];
       }
 
-      // Extract crop_ids from the response
-      final List<String> favoriteIds = [];
+      // Create a set of favorite crop IDs for efficient lookup
+      final Set<String> favoriteIds = {};
       if (favoritesResponse is List) {
         for (var item in favoritesResponse) {
           if (item is Map && item['crop_id'] != null) {
@@ -81,56 +133,33 @@ class DatabaseService {
         }
       }
 
-      if (favoriteIds.isEmpty) {
-        return [];
-      }
+      // Filter all crops to get only favorites and mark them as favorited
+      final List<Map<String, dynamic>> favoriteCrops = allCrops
+          .where((crop) => favoriteIds.contains(crop['crop_id'].toString()))
+          .map((crop) {
+        final Map<String, dynamic> favCrop = Map.from(crop);
+        favCrop['isFavorited'] = true;
+        return favCrop;
+      }).toList();
 
-      // Get the crop details for each favorite
-      final cropsResponse =
-          await _supabase.from('crop').select('*').in_('crop_id', favoriteIds);
+      // Store in cache
+      _favoriteCache[cacheKey] = favoriteCrops;
 
-      if (cropsResponse == null) {
-        return [];
-      }
-
-      // Convert response to List<Map<String, dynamic>> if it's not already
-      final List<Map<String, dynamic>> crops = cropsResponse is List
-          ? List<Map<String, dynamic>>.from(cropsResponse.map(
-              (item) => item is Map ? Map<String, dynamic>.from(item) : {}))
-          : [];
-
-      // For each crop, get its demand for the specified week
-      for (var i = 0; i < crops.length; i++) {
-        final cropId = crops[i]['crop_id'];
-
-        // Get demand for the current crop and specified week
-        final demandResponse = await _supabase
-            .from('demand')
-            .select('demand')
-            .eq('crop_id', cropId)
-            .eq('week_no', currentWeekNo)
-            .maybeSingle();
-
-        // Set the demand value or default to 0 if not found
-        crops[i]['demand'] = demandResponse != null &&
-                demandResponse['demand'] != null
-            ? (demandResponse['demand'] is num ? demandResponse['demand'] : 0.0)
-            : 0.0;
-
-        // Mark as favorited
-        crops[i]['isFavorited'] = true;
-      }
-
-      return crops;
+      return favoriteCrops;
     } catch (e) {
       print('Error fetching user favorites: $e');
       throw Exception('Error fetching favorites: $e');
     }
   }
 
-  // Get all categories
+  // Get all categories - with caching
   Future<List<Map<String, dynamic>>> getCategories() async {
     try {
+      // Return cached categories if available
+      if (_categoriesCache != null) {
+        return _categoriesCache!;
+      }
+
       final response = await _supabase
           .from('crop')
           .select('crop_category')
@@ -184,10 +213,26 @@ class DatabaseService {
         });
       }
 
+      // Cache the result
+      _categoriesCache = result;
+
       return result;
     } catch (e) {
       print('Error fetching categories: $e');
       rethrow;
+    }
+  }
+
+  // Clear cache for a specific week or all weeks if no week specified
+  void clearCache({int? weekNo}) {
+    if (weekNo != null) {
+      final cacheKey = 'week_$weekNo';
+      _cropCache.remove(cacheKey);
+      _favoriteCache.remove(cacheKey);
+    } else {
+      _cropCache.clear();
+      _favoriteCache.clear();
+      _categoriesCache = null;
     }
   }
 

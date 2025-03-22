@@ -5,8 +5,8 @@ import '../../components/greeting.dart';
 import '../../components/search_bar.dart';
 import '../../components/highlights.dart';
 import '../../components/favorites.dart';
-import '../../components/weather_widget.dart'; // New import
-import '../../components/calendar.dart'; // New calendar component import
+import '../../components/weather_widget.dart';
+import '../../components/calendar.dart';
 import '../config/app_localizations.dart';
 import '../../services/database_service.dart';
 import 'package:provider/provider.dart';
@@ -19,11 +19,16 @@ class HomeTab extends StatefulWidget {
   State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab> {
+class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
   List<Crop> crops = [];
   List<Crop> favorites = [];
   bool isLoading = true;
+  bool isInitialLoad = true;
   String? error;
+  final DatabaseService _databaseService = DatabaseService();
+
+  @override
+  bool get wantKeepAlive => true;
 
   // Original colors restored for main background
   final Color _primaryGreen = const Color(0xFF1B5E20); // Dark green
@@ -55,37 +60,49 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Future<void> _loadData() async {
-    try {
-      setState(() {
-        isLoading = true;
-        error = null;
-      });
+    if (!mounted) return;
 
+    // Set loading to true, but don't show loading indicator for subsequent loads
+    setState(() {
+      if (isInitialLoad) {
+        isLoading = true;
+      }
+      error = null;
+    });
+
+    try {
       // Get the selected week from the provider
       final weekProvider = Provider.of<WeekProvider>(context, listen: false);
       final selectedWeek = weekProvider.selectedWeek;
 
-      final databaseService = DatabaseService();
+      // Use batch queries from the optimized database service
       final cropsData =
-          await databaseService.getCropsWithDemand(weekNo: selectedWeek);
+          await _databaseService.getCropsWithDemand(weekNo: selectedWeek);
       final favoritesData =
-          await databaseService.getUserFavorites(weekNo: selectedWeek);
+          await _databaseService.getUserFavorites(weekNo: selectedWeek);
+
+      if (!mounted) return;
 
       setState(() {
         crops = cropsData.map((json) => Crop.fromJson(json)).toList();
         favorites = favoritesData.map((json) => Crop.fromJson(json)).toList();
         isLoading = false;
+        isInitialLoad = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         error = 'Failed to load data: $e';
         isLoading = false;
+        isInitialLoad = false;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+
     // Get screen size for responsive design
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 360;
@@ -102,151 +119,240 @@ class _HomeTabState extends State<HomeTab> {
           ),
         ),
         child: SafeArea(
-          child: isLoading
+          child: isLoading && isInitialLoad
               ? const Center(child: CircularProgressIndicator())
               : error != null
-                  ? Center(child: Text(error!))
-                  : SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
+                  ? Center(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Header card with gradient background and curved bottom border
-                          Container(
-                            margin: EdgeInsets.only(
-                              left: isSmallScreen ? 8 : 16,
-                              right: isSmallScreen ? 8 : 16,
-                              top: isSmallScreen ? 16 : 24,
-                              bottom: 0,
+                          Icon(Icons.error_outline,
+                              color: Colors.red[700], size: 48),
+                          const SizedBox(height: 16),
+                          Text(
+                            error!,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [_headerGreen, _headerTeal],
-                                stops: const [0.3, 1.0],
-                              ),
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(16),
-                                topRight: Radius.circular(16),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  spreadRadius: 1,
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 3),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            onPressed: _loadData,
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: _primaryGreen,
+                            ),
+                            child: const Text('Try Again'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        // Clear cache for the current week
+                        final weekProvider =
+                            Provider.of<WeekProvider>(context, listen: false);
+                        _databaseService.clearCache(
+                            weekNo: weekProvider.selectedWeek);
+                        await _loadData();
+                      },
+                      child: Stack(
+                        children: [
+                          SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Header card with gradient background and curved bottom border
+                                Container(
+                                  margin: EdgeInsets.only(
+                                    left: isSmallScreen ? 8 : 16,
+                                    right: isSmallScreen ? 8 : 16,
+                                    top: isSmallScreen ? 16 : 24,
+                                    bottom: 0,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [_headerGreen, _headerTeal],
+                                      stops: const [0.3, 1.0],
+                                    ),
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(16),
+                                      topRight: Radius.circular(16),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        spreadRadius: 1,
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  // Create a custom clipper for the curved bottom border
+                                  child: ClipPath(
+                                    clipper: CurvedBottomClipper(),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(
+                                          isSmallScreen ? 12 : 16),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Greeting component with theme
+                                          Theme(
+                                            data: Theme.of(context).copyWith(
+                                              textTheme: Theme.of(context)
+                                                  .textTheme
+                                                  .apply(
+                                                    bodyColor: _lightText,
+                                                    displayColor: _lightText,
+                                                  ),
+                                            ),
+                                            child: const Greeting(),
+                                          ),
+
+                                          // Weather widget added below the greeting
+                                          Theme(
+                                            data: Theme.of(context).copyWith(
+                                              textTheme: Theme.of(context)
+                                                  .textTheme
+                                                  .apply(
+                                                    bodyColor: _lightText,
+                                                    displayColor: _lightText,
+                                                  ),
+                                            ),
+                                            child: const WeatherWidget(),
+                                          ),
+
+                                          // Add extra padding at the bottom for the curve
+                                          SizedBox(
+                                              height: isSmallScreen ? 8 : 16),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                SizedBox(height: isSmallScreen ? 8 : 12),
+
+                                // Weekly Calendar section - now using the Calendar component
+                                Calendar(
+                                  margin: EdgeInsets.symmetric(
+                                    horizontal: isSmallScreen ? 8 : 16,
+                                    vertical: 8,
+                                  ),
+                                ),
+
+                                SizedBox(height: isSmallScreen ? 8 : 12),
+
+                                // Highlights section
+                                Container(
+                                  margin:
+                                      const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                                  padding: const EdgeInsets.all(16),
+                                  width: double.infinity,
+                                  child: Theme(
+                                    data: Theme.of(context).copyWith(
+                                      primaryColor: _primaryGreen,
+                                      colorScheme: ColorScheme.dark(
+                                        primary: _primaryGreen,
+                                        secondary: Colors.greenAccent,
+                                        surface: _darkBackground,
+                                      ),
+                                      textTheme: Theme.of(context)
+                                          .textTheme
+                                          .copyWith(
+                                            titleMedium: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                              color: _lightText,
+                                              letterSpacing: 0.2,
+                                            ),
+                                            bodyMedium: TextStyle(
+                                              fontSize: 14,
+                                              color:
+                                                  _lightText.withOpacity(0.8),
+                                            ),
+                                          ),
+                                    ),
+                                    child: Highlights(crops: crops),
+                                  ),
+                                ),
+
+                                // Favorites section
+                                Container(
+                                  margin:
+                                      const EdgeInsets.fromLTRB(12, 0, 12, 32),
+                                  padding: const EdgeInsets.all(16),
+                                  width: double.infinity,
+                                  child: Theme(
+                                    data: Theme.of(context).copyWith(
+                                      primaryColor: _primaryGreen,
+                                      colorScheme: ColorScheme.dark(
+                                        primary: _primaryGreen,
+                                        secondary: Colors.greenAccent,
+                                        surface: _darkBackground,
+                                      ),
+                                      textTheme:
+                                          Theme.of(context).textTheme.copyWith(
+                                                titleMedium: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: _lightText,
+                                                  letterSpacing: 0.2,
+                                                ),
+                                              ),
+                                    ),
+                                    child: FavoritesWithHeartIcons(
+                                        crops: favorites),
+                                  ),
                                 ),
                               ],
                             ),
-                            // Create a custom clipper for the curved bottom border
-                            child: ClipPath(
-                              clipper: CurvedBottomClipper(),
-                              child: Padding(
-                                padding:
-                                    EdgeInsets.all(isSmallScreen ? 12 : 16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Greeting component with theme
-                                    Theme(
-                                      data: Theme.of(context).copyWith(
-                                        textTheme:
-                                            Theme.of(context).textTheme.apply(
-                                                  bodyColor: _lightText,
-                                                  displayColor: _lightText,
-                                                ),
+                          ),
+                          if (isLoading && !isInitialLoad)
+                            Positioned(
+                              top: 100,
+                              left: 0,
+                              right: 0,
+                              child: Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white.withOpacity(0.9),
+                                        ),
                                       ),
-                                      child: const Greeting(),
-                                    ),
-
-                                    // Weather widget added below the greeting
-                                    Theme(
-                                      data: Theme.of(context).copyWith(
-                                        textTheme:
-                                            Theme.of(context).textTheme.apply(
-                                                  bodyColor: _lightText,
-                                                  displayColor: _lightText,
-                                                ),
+                                      const SizedBox(width: 16),
+                                      const Text(
+                                        'Updating data...',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                      child: const WeatherWidget(),
-                                    ),
-
-                                    // Add extra padding at the bottom for the curve
-                                    SizedBox(height: isSmallScreen ? 8 : 16),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-
-                          SizedBox(height: isSmallScreen ? 8 : 12),
-
-                          // Weekly Calendar section - now using the Calendar component
-                          Calendar(
-                            margin: EdgeInsets.symmetric(
-                              horizontal: isSmallScreen ? 8 : 16,
-                              vertical: 8,
-                            ),
-                          ),
-
-                          SizedBox(height: isSmallScreen ? 8 : 12),
-
-                          // Highlights section
-                          Container(
-                            margin: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-                            padding: const EdgeInsets.all(16),
-                            width: double.infinity,
-                            child: Theme(
-                              data: Theme.of(context).copyWith(
-                                primaryColor: _primaryGreen,
-                                colorScheme: ColorScheme.dark(
-                                  primary: _primaryGreen,
-                                  secondary: Colors.greenAccent,
-                                  surface: _darkBackground,
-                                ),
-                                textTheme: Theme.of(context).textTheme.copyWith(
-                                      titleMedium: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: _lightText,
-                                        letterSpacing: 0.2,
-                                      ),
-                                      bodyMedium: TextStyle(
-                                        fontSize: 14,
-                                        color: _lightText.withOpacity(0.8),
-                                      ),
-                                    ),
-                              ),
-                              child: Highlights(crops: crops),
-                            ),
-                          ),
-
-                          // Favorites section
-                          Container(
-                            margin: const EdgeInsets.fromLTRB(12, 0, 12, 32),
-                            padding: const EdgeInsets.all(16),
-                            width: double.infinity,
-                            child: Theme(
-                              data: Theme.of(context).copyWith(
-                                primaryColor: _primaryGreen,
-                                colorScheme: ColorScheme.dark(
-                                  primary: _primaryGreen,
-                                  secondary: Colors.greenAccent,
-                                  surface: _darkBackground,
-                                ),
-                                textTheme: Theme.of(context).textTheme.copyWith(
-                                      titleMedium: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: _lightText,
-                                        letterSpacing: 0.2,
-                                      ),
-                                    ),
-                              ),
-                              child: FavoritesWithHeartIcons(crops: favorites),
-                            ),
-                          ),
                         ],
                       ),
                     ),
