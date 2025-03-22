@@ -71,7 +71,7 @@ def month_to_week_predictions(df):
 
             for i, week in enumerate(weeks):
                 position_within_month = (i + 1) / (num_weeks + 1)
-                week_factor = 1.0 + (position_within_month - 0.5) * 0.05  # Reduce variation from 10% to 5%
+                week_factor = 1.0 + (position_within_month - 0.5) * 0.05
                 weekly_demand = int(round((monthly_demand / num_weeks) * week_factor))
 
                 crop_weekly_demands.append({
@@ -85,8 +85,12 @@ def month_to_week_predictions(df):
             del item['raw_demand']
             weekly_data.append(item)
 
-    weekly_df = pd.DataFrame(weekly_data).sort_values(by=['crop_id', 'week_no'])
-    weekly_df['id'] = range(1, len(weekly_df) + 1)
+    weekly_df = pd.DataFrame(weekly_data)
+
+    # **Improvement: Better sorting and indexing**
+    weekly_df = weekly_df.sort_values(['crop_id', 'week_no']).reset_index(drop=True)
+    weekly_df.insert(0, 'id', weekly_df.index + 1)
+
     return weekly_df[['id', 'crop_id', 'week_no', 'demand']]
 
 # Generate weekly predictions
