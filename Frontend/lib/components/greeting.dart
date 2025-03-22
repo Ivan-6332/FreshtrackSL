@@ -13,14 +13,15 @@ class Greeting extends StatefulWidget {
 class _GreetingState extends State<Greeting> {
   String _firstName = '';
   late Color _avatarColor;
-  late String _initials;
+  String? _profileImageUrl;
+  final String _defaultAvatarPath = 'assets/images/default_avatar.jpg';
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    _loadUserData();
 
-    // Generate a random color for the avatar
+    // Generate a random color for the avatar background (fallback)
     final random = Random();
     final colorsList = [
       Colors.blue,
@@ -34,7 +35,7 @@ class _GreetingState extends State<Greeting> {
     _avatarColor = colorsList[random.nextInt(colorsList.length)];
   }
 
-  Future<void> _loadUserName() async {
+  Future<void> _loadUserData() async {
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
@@ -42,20 +43,30 @@ class _GreetingState extends State<Greeting> {
         if (userData != null && userData['first_name'] != null) {
           setState(() {
             _firstName = userData['first_name'];
-            // Generate initials from first name
-            _initials = _firstName.isNotEmpty ? _firstName[0].toUpperCase() : "?";
+            _fetchProfileImage(user.id);
           });
         }
-      } else {
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    }
+  }
+
+  Future<void> _fetchProfileImage(String userId) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', userId)
+          .single();
+
+      if (response != null && response['avatar_url'] != null) {
         setState(() {
-          _initials = "?";
+          _profileImageUrl = response['avatar_url'];
         });
       }
     } catch (e) {
-      print('Error loading user name: $e');
-      setState(() {
-        _initials = "?";
-      });
+      print('Error fetching profile image: $e');
     }
   }
 
@@ -63,18 +74,14 @@ class _GreetingState extends State<Greeting> {
   Widget build(BuildContext context) {
     // Get screen dimensions for responsive sizing
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     // Dynamic sizing based on screen dimensions
     final isSmallScreen = screenWidth < 360;
     final isMediumScreen = screenWidth >= 360 && screenWidth < 600;
-    final isLargeScreen = screenWidth >= 600;
 
     // Calculate responsive font sizes
-    final helloTextSize = isSmallScreen ? 28.0 : (isMediumScreen ? 38.0 : 46.0);
-    final nameTextSize = isSmallScreen ? 22.0 : (isMediumScreen ? 30.0 : 36.0);
+    final greetingTextSize = isSmallScreen ? 24.0 : (isMediumScreen ? 32.0 : 40.0);
     final avatarSize = isSmallScreen ? 60.0 : (isMediumScreen ? 75.0 : 90.0);
-    final initialsSize = isSmallScreen ? 24.0 : (isMediumScreen ? 32.0 : 40.0);
 
     // Calculate responsive padding
     final containerPadding = EdgeInsets.symmetric(
@@ -84,20 +91,19 @@ class _GreetingState extends State<Greeting> {
 
     // Calculate responsive spacing
     final spacingWidth = isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0);
-    final spacingHeight = isSmallScreen ? 4.0 : (isMediumScreen ? 6.0 : 8.0);
 
     // Calculate responsive container properties
     final borderRadius = isSmallScreen ? 16.0 : (isMediumScreen ? 20.0 : 24.0);
     final containerMargin = EdgeInsets.all(isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0));
+
+    // Create the greeting text on a single line
+    final greetingText = "Hello ${_firstName.isNotEmpty ? _firstName : "there"}";
 
     return Padding(
       padding: containerMargin,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(borderRadius),
-          // Removed border
-          // border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-          // Kept the shadow
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -108,79 +114,98 @@ class _GreetingState extends State<Greeting> {
         ),
         padding: containerPadding,
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            // Generated profile avatar with initials
+            // Profile image avatar
             Container(
+              width: avatarSize,
+              height: avatarSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.15),
                     blurRadius: 8,
-                    spreadRadius: 1,
+                    spreadRadius: .5,
                     offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: CircleAvatar(
-                radius: avatarSize / 2,
-                backgroundColor: _avatarColor,
-                child: Text(
-                  _initials,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: initialsSize,
-                    fontWeight: FontWeight.bold,
-                  ),
+              child: ClipOval(
+                child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                    ? Image.network(
+                  _profileImageUrl!,
+                  width: avatarSize,
+                  height: avatarSize,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    // Fallback to default avatar image if network image fails to load
+                    return Image.asset(
+                      _defaultAvatarPath,
+                      width: avatarSize,
+                      height: avatarSize,
+                      fit: BoxFit.cover,
+                      // If default image also fails, fall back to colored circle
+                      errorBuilder: (context, error, stackTrace) {
+                        return CircleAvatar(
+                          radius: avatarSize / 2,
+                          backgroundColor: _avatarColor,
+                          child: Text(
+                            _firstName.isNotEmpty ? _firstName[0].toUpperCase() : "?",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: avatarSize * 0.4,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                )
+                    : Image.asset(
+                  _defaultAvatarPath,
+                  width: avatarSize,
+                  height: avatarSize,
+                  fit: BoxFit.cover,
+                  // If default image fails, fall back to colored circle
+                  errorBuilder: (context, error, stackTrace) {
+                    return CircleAvatar(
+                      radius: avatarSize / 2,
+                      backgroundColor: _avatarColor,
+                      child: Text(
+                        _firstName.isNotEmpty ? _firstName[0].toUpperCase() : "?",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: avatarSize * 0.4,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
             SizedBox(width: spacingWidth),
-            // Column for "Hello" and name on separate lines
-            Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Hello,",
-                    style: TextStyle(
-                      fontSize: helloTextSize,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                      height: 1.1,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: const Offset(1, 1),
-                          blurRadius: 3,
-                          color: Colors.black.withOpacity(0.3),
-                        ),
-                      ],
+            // Single line greeting text - simplified
+            Expanded(
+              child: Text(
+                greetingText,
+                style: TextStyle(
+                  fontSize: greetingTextSize,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  height: 1.1,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      offset: const Offset(1, 1),
+                      blurRadius: 3,
+                      color: Colors.black.withOpacity(0.3),
                     ),
-                  ),
-                  SizedBox(height: spacingHeight),
-                  Text(
-                    _firstName.isNotEmpty ? _firstName : "there",
-                    style: TextStyle(
-                      fontSize: nameTextSize,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
-                      height: 1.1,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          offset: const Offset(1, 1),
-                          blurRadius: 3,
-                          color: Colors.black.withOpacity(0.2),
-                        ),
-                      ],
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: true,
-                  ),
-                ],
+                  ],
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1, // Force single line
               ),
             ),
           ],
