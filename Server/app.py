@@ -4,25 +4,36 @@ from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 from supabase import create_client
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(
+    filename="logfile.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 # Load the monthly data
 df = pd.read_csv('2021.csv')
+logging.info("CSV file '2021.csv' loaded successfully.")
 
 # Function to validate that each crop has a maximum demand of 100%
 def validate_max_percentages(weekly_df):
+    logging.info("Validating max percentages for crops.")
+    
     max_by_crop = weekly_df.groupby('crop_id')['demand'].max().reset_index()
-
-    print("Maximum percentage by crop_id:")
+    
+    logging.info("Validation results:")
     for _, row in max_by_crop.iterrows():
-        print(f"Crop {row['crop_id']}: {row['demand']}%")
-
+        logging.info(f"Crop {row['crop_id']}: {row['demand']}%")
+    
     all_100 = all(max_by_crop['demand'] == 100)
-    print(f"\nAll crops have 100% as maximum: {all_100}")
-    print(f"Number of weeks with 100% demand: {len(weekly_df[weekly_df['demand'] == 100])}")
-    print(f"Number of unique crops: {weekly_df['crop_id'].nunique()}")
+    logging.info(f"All crops have 100% as maximum: {all_100}")
 
 # Function to upload data to Supabase
 def upload_to_supabase(df, table_name):
+    logging.info(f"Starting upload to Supabase table '{table_name}'.")
+
     supabase_url = "YOUR_SUPABASE_URL"
     supabase_key = "YOUR_SUPABASE_API_KEY"
     supabase = create_client(supabase_url, supabase_key)
@@ -30,21 +41,21 @@ def upload_to_supabase(df, table_name):
     records = df.to_dict('records')
     batch_size = 100
 
-    print(f"Uploading {len(records)} records to '{table_name}'...")
-
     for i in range(0, len(records), batch_size):
         batch = records[i:i + batch_size]
         result = supabase.table(table_name).insert(batch).execute()
 
         if hasattr(result, 'error') and result.error:
-            print(f"Error uploading batch {i // batch_size + 1}: {result.error}")
+            logging.error(f"Error uploading batch {i // batch_size + 1}: {result.error}")
         else:
-            print(f"Uploaded batch {i // batch_size + 1}")
+            logging.info(f"Uploaded batch {i // batch_size + 1}")
 
-    print("Upload completed.")
+    logging.info("Upload completed.")
 
 # Function to convert month-based data to week-based predictions
 def month_to_week_predictions(df):
+    logging.info("Generating weekly predictions.")
+
     month_to_weeks = {
         1: [1, 2, 3, 4], 2: [5, 6, 7, 8], 3: [9, 10, 11, 12, 13],
         4: [14, 15, 16, 17], 5: [18, 19, 20, 21, 22], 6: [23, 24, 25, 26],
@@ -55,6 +66,8 @@ def month_to_week_predictions(df):
     weekly_data = []
 
     for crop_id in df['crop_id'].unique():
+        logging.info(f"Processing crop_id {crop_id}.")
+        
         crop_data = df[df['crop_id'] == crop_id]
         X = crop_data[['month_no']].values
         y = crop_data['demand'].values
@@ -86,11 +99,11 @@ def month_to_week_predictions(df):
             weekly_data.append(item)
 
     weekly_df = pd.DataFrame(weekly_data)
-
-    # **Improvement: Better sorting and indexing**
+    
     weekly_df = weekly_df.sort_values(['crop_id', 'week_no']).reset_index(drop=True)
     weekly_df.insert(0, 'id', weekly_df.index + 1)
 
+    logging.info(f"Generated weekly predictions for {len(weekly_df)} rows.")
     return weekly_df[['id', 'crop_id', 'week_no', 'demand']]
 
 # Generate weekly predictions
@@ -99,10 +112,12 @@ validate_max_percentages(weekly_df)
 
 # Save weekly predictions
 weekly_df.to_csv('weekly_demand_predictions_percentage.csv', index=False)
-print(f"Generated weekly predictions for {len(weekly_df)} rows.")
+logging.info("Weekly predictions saved to 'weekly_demand_predictions_percentage.csv'.")
 
 # Function to plot multiple crops
 def plot_multiple_crops(crop_ids=[1, 2, 3, 4, 5]):
+    logging.info("Generating plots for multiple crops.")
+    
     plt.figure(figsize=(14, 8))
 
     for crop_id in crop_ids:
@@ -119,8 +134,11 @@ def plot_multiple_crops(crop_ids=[1, 2, 3, 4, 5]):
     plt.tight_layout()
     plt.savefig('multiple_crops_demand_percentage.png')
     plt.close()
+    
+    logging.info("Plots saved as 'multiple_crops_demand_percentage.png'.")
 
 # Uncomment to plot multiple crops
 # plot_multiple_crops(crop_ids=[1, 2, 3, 4, 5])
 
+logging.info("Script execution completed.")
 print("Done!")
