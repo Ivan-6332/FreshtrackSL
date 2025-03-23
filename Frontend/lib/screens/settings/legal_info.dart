@@ -1,14 +1,36 @@
-// lib/screens/settings/legal_info.dart
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+// Import the privacy policy popup
+import 'privacy_policy_popup.dart';
+// Import our new terms and conditions popup
+import 'terms_and_conditions_popup.dart';
 
 class LegalInfoScreen extends StatelessWidget {
   const LegalInfoScreen({super.key});
 
-  void _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
+  Future<void> launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri)) {
+      throw Exception('Could not launch $url');
     }
+  }
+
+  void showPrivacyPolicy(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return const PrivacyPolicyPopup();
+      },
+    );
+  }
+
+  void showTermsAndConditions(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return const TermsAndConditionsPopup();
+      },
+    );
   }
 
   @override
@@ -33,19 +55,19 @@ class LegalInfoScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            _buildLegalItem(
+            buildLegalItem(
               context,
               icon: Icons.privacy_tip,
               title: 'Privacy Policy',
               gradientColors: [Colors.green[300]!, Colors.green[500]!],
-              onTap: () => _launchURL('https://your-privacy-policy-url.com'),
+              onTap: () => showPrivacyPolicy(context),
             ),
-            _buildLegalItem(
+            buildLegalItem(
               context,
               icon: Icons.description,
               title: 'Terms and Conditions',
               gradientColors: [Colors.green[300]!, Colors.green[500]!],
-              onTap: () => _launchURL('https://your-terms-url.com'),
+              onTap: () => showTermsAndConditions(context),
             ),
           ],
         ),
@@ -53,7 +75,7 @@ class LegalInfoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLegalItem(
+  Widget buildLegalItem(
       BuildContext context, {
         required IconData icon,
         required String title,
