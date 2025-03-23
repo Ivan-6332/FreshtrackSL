@@ -85,6 +85,7 @@ class _CropPopupState extends State<CropPopup> {
                 Row(
                   children: [
                     Container(
+                      margin: EdgeInsets.only(left: 10.0, top: 10.0),
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
@@ -105,14 +106,14 @@ class _CropPopupState extends State<CropPopup> {
                         Text(
                           widget.crop.name,
                           style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                         Text(
                           widget.crop.category,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             color: Colors.grey.shade600,
                           ),
                         ),
@@ -182,7 +183,7 @@ class _CropPopupState extends State<CropPopup> {
 
             // Week label
             const Text(
-              'Week No',
+              'Week No.',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
 
