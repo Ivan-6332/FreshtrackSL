@@ -152,6 +152,83 @@ class DatabaseService {
     }
   }
 
+  // Check if a crop is favorited by the current user
+  Future<bool> isCropFavorited(String cropId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        return false;
+      }
+
+      final response = await _supabase
+          .from('favorites')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('crop_id', cropId)
+          .limit(1);
+
+      return response != null && response is List && response.isNotEmpty;
+    } catch (e) {
+      print('Error checking if crop is favorited: $e');
+      return false;
+    }
+  }
+
+  // Add a crop to favorites
+  Future<bool> addFavorite(String cropId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        return false;
+      }
+
+      // Check if the favorite already exists
+      final exists = await isCropFavorited(cropId);
+      if (exists) {
+        return true; // Already a favorite, consider it a success
+      }
+
+      // Add to favorites
+      await _supabase.from('favorites').insert({
+        'user_id': userId,
+        'crop_id': cropId,
+      });
+
+      // Clear cache to ensure fresh data on next fetch
+      clearCache();
+
+      return true;
+    } catch (e) {
+      print('Error adding favorite: $e');
+      return false;
+    }
+  }
+
+  // Remove a crop from favorites
+  Future<bool> removeFavorite(String cropId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        return false;
+      }
+
+      // Delete the favorite
+      await _supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', userId)
+          .eq('crop_id', cropId);
+
+      // Clear cache to ensure fresh data on next fetch
+      clearCache();
+
+      return true;
+    } catch (e) {
+      print('Error removing favorite: $e');
+      return false;
+    }
+  }
+
   // Get all categories - with caching
   Future<List<Map<String, dynamic>>> getCategories() async {
     try {

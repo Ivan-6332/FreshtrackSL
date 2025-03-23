@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/crop.dart';
+import '../services/database_service.dart';
 
 class CropPopup extends StatefulWidget {
   final Crop crop;
@@ -13,6 +14,8 @@ class CropPopup extends StatefulWidget {
 class _CropPopupState extends State<CropPopup> {
   int _centerWeekNumber = 12; // Default center week
   bool _isFavorite = false;
+  bool _isLoading = false;
+  final DatabaseService _databaseService = DatabaseService();
 
   // Dummy data for the bar graph - in a real app, this would come from your data source
   final Map<int, double> _weeklyDemandData = {
@@ -27,9 +30,39 @@ class _CropPopupState extends State<CropPopup> {
     16: 80.0,
   };
 
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with the crop's favorited status
+    _isFavorite = widget.crop.isFavorited;
+    // Double-check with the database
+    _checkFavoriteStatus();
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final isFavorited =
+          await _databaseService.isCropFavorited(widget.crop.id);
+      setState(() {
+        _isFavorite = isFavorited;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error checking favorite status: $e');
+    }
+  }
+
   void _shiftTimeframeLeft() {
     setState(() {
-      if (_centerWeekNumber > 10) { // Prevent going too far back
+      if (_centerWeekNumber > 10) {
+        // Prevent going too far back
         _centerWeekNumber--;
       }
     });
@@ -37,16 +70,40 @@ class _CropPopupState extends State<CropPopup> {
 
   void _shiftTimeframeRight() {
     setState(() {
-      if (_centerWeekNumber < 14) { // Prevent going too far forward
+      if (_centerWeekNumber < 14) {
+        // Prevent going too far forward
         _centerWeekNumber++;
       }
     });
   }
 
-  void _toggleFavorite() {
+  Future<void> _toggleFavorite() async {
     setState(() {
-      _isFavorite = !_isFavorite;
+      _isLoading = true;
     });
+
+    try {
+      bool success;
+      if (_isFavorite) {
+        // Remove from favorites
+        success = await _databaseService.removeFavorite(widget.crop.id);
+      } else {
+        // Add to favorites
+        success = await _databaseService.addFavorite(widget.crop.id);
+      }
+
+      if (success) {
+        setState(() {
+          _isFavorite = !_isFavorite;
+        });
+      }
+    } catch (e) {
+      print('Error toggling favorite: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   List<int> _getVisibleWeeks() {
@@ -72,9 +129,7 @@ class _CropPopupState extends State<CropPopup> {
         width: 350,
         padding: const EdgeInsets.all(20.0),
         decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10)
-        ),
+            color: Colors.white, borderRadius: BorderRadius.circular(10)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -140,8 +195,10 @@ class _CropPopupState extends State<CropPopup> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: visibleWeeks.map((weekNum) {
-                  final demand = _weeklyDemandData[weekNum] ?? 50.0; // Default if no data
-                  final isCurrentWeek = weekNum == 12; // Highlight the current week
+                  final demand =
+                      _weeklyDemandData[weekNum] ?? 50.0; // Default if no data
+                  final isCurrentWeek =
+                      weekNum == 12; // Highlight the current week
 
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -149,9 +206,12 @@ class _CropPopupState extends State<CropPopup> {
                       // Bar
                       Container(
                         width: 40,
-                        height: 140 * (demand / 100), // Scale height based on demand
+                        height: 140 *
+                            (demand / 100), // Scale height based on demand
                         decoration: BoxDecoration(
-                          color: isCurrentWeek ? Colors.green.shade700 : Colors.green.shade400,
+                          color: isCurrentWeek
+                              ? Colors.green.shade700
+                              : Colors.green.shade400,
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(4),
                             topRight: Radius.circular(4),
@@ -174,7 +234,9 @@ class _CropPopupState extends State<CropPopup> {
                         '$weekNum',
                         style: TextStyle(
                           color: Colors.black,
-                          fontWeight: isCurrentWeek ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isCurrentWeek
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                     ],
@@ -188,9 +250,8 @@ class _CropPopupState extends State<CropPopup> {
             // Week label
             const Text(
               'Week No.',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold),
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 20),
@@ -228,7 +289,7 @@ class _CropPopupState extends State<CropPopup> {
 
             // Favorite button
             GestureDetector(
-              onTap: _toggleFavorite,
+              onTap: _isLoading ? null : _toggleFavorite,
               child: Container(
                 height: 50,
                 decoration: BoxDecoration(
@@ -238,11 +299,13 @@ class _CropPopupState extends State<CropPopup> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 16.0),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
                       child: Text(
-                        'Add to Favourites',
-                        style: TextStyle(
+                        _isFavorite
+                            ? 'Remove from Favourites'
+                            : 'Add to Favourites',
+                        style: const TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                             fontSize: 16),
@@ -250,10 +313,23 @@ class _CropPopupState extends State<CropPopup> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(right: 16.0),
-                      child: Icon(
-                        _isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: _isFavorite ? Colors.red : Colors.grey,
-                      ),
+                      child: _isLoading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  _isFavorite ? Colors.red : Colors.grey,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              _isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: _isFavorite ? Colors.red : Colors.grey,
+                            ),
                     ),
                   ],
                 ),
