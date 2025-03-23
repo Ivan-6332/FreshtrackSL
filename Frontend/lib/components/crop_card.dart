@@ -41,9 +41,9 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    // Calculate percentage of demand relative to max (200%)
-    final demandPercentage = widget.crop.demand / 200;
-    final isHighDemand = widget.crop.demand > 100;
+    // Calculate percentage of demand relative to max (100%)
+    final demandPercentage = widget.crop.demand / 100;
+    final isHighDemand = widget.crop.demand > 70;
 
     // Define demand color based on value
     final Color demandColor = isHighDemand ? Colors.green.shade700 : Colors.red.shade700;
