@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/crop.dart';
 import '../config/app_localizations.dart';
+import '../components/crop_popup.dart';
 
 class CropCard extends StatefulWidget {
   final Crop crop;
@@ -55,6 +56,13 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
         onTapDown: (_) => setState(() => _isHovered = true),
         onTapUp: (_) => setState(() => _isHovered = false),
         onTapCancel: () => setState(() => _isHovered = false),
+        onTap: () {
+          // Show the popup when the card is tapped
+          showDialog(
+            context: context,
+            builder: (context) => CropPopup(crop: widget.crop),
+          );
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutQuad,
