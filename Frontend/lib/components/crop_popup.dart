@@ -123,6 +123,8 @@ class _CropPopupState extends State<CropPopup> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
+                  color: Colors.red.shade900,
+                  iconSize: 35.0,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
