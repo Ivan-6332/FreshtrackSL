@@ -41,9 +41,9 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    // Calculate percentage of demand relative to max (100%)
-    final demandPercentage = widget.crop.demand / 100;
-    final isHighDemand = widget.crop.demand > 70;
+    // Calculate percentage of demand relative to max (200%)
+    final demandPercentage = widget.crop.demand / 200;
+    final isHighDemand = widget.crop.demand > 75;
 
     // Define demand color based on value
     final Color demandColor = isHighDemand ? Colors.green.shade700 : Colors.red.shade700;
@@ -58,10 +58,10 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutQuad,
-          margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-          transform: _isHovered
-              ? (Matrix4.identity()..scale(1.05)) // Scale up when hovered/touched
-              : Matrix4.identity(),
+          margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+          // transform: _isHovered
+          //     ? (Matrix4.identity()..scale(1.05)) // Scale up when hovered/touched
+          //     : Matrix4.identity(),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14.0),
             gradient: LinearGradient(
@@ -100,124 +100,120 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0), // Increased from 12.0 for more padding
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 14.0), // Reduced vertical padding
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Crop emoji
+                      // Crop emoji - made smaller
                       Container(
-                        width: 60,
-                        height: 60,
+                        width: 50, // Reduced from 60
+                        height: 50, // Reduced from 60
                         decoration: BoxDecoration(
                           color: Colors.green.shade50,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
                           child: Text(
                             widget.crop.pic,
-                            style: const TextStyle(fontSize: 32),
+                            style: const TextStyle(fontSize: 32), // Reduced from 32
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      // Crop details
+
+                      const SizedBox(width: 12), // Reduced spacing
+
+                      // Crop name and category in a column - taking only needed space
                       Expanded(
+                        flex: 2, // Give more space to the name/category column
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Add space at the top to move text down
-                            const SizedBox(height: 8),
-
                             // Crop name
                             Text(
                               widget.crop.name,
                               style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 20, // Reduced from 20
+                                fontWeight: FontWeight.w800,
                                 color: Colors.black,
                               ),
                             ),
-
-                            // Category name with no gap
-                            // Using a container with limited width to force long category names to wrap to two lines
-                            Container(
-                              width: 150, // Adjust this width as needed based on your UI
-                              child: Text(
-                                widget.crop.category,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
-                                maxLines: 2, // Allow up to 2 lines
-                                overflow: TextOverflow.ellipsis, // Use ellipsis if it's longer than 2 lines
+                            // Category with limited space
+                            Text(
+                              widget.crop.category,
+                              style: TextStyle(
+                                fontSize: 14, // Reduced from 14
+                                color: Colors.grey.shade600,
                               ),
-                            ),
-
-                            const SizedBox(height: 4), // Small gap after category
-
-                            // Row containing demand info
-                            Row(
-                              children: [
-                                const Spacer(), // Push demand info to the right
-
-                                // Animated demand graph
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Graph visualization
-                                    Container(
-                                      width: 70,
-                                      height: 40,
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade100,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: Colors.grey.shade300),
-                                      ),
-                                      child: AnimatedBuilder(
-                                        animation: _animationController,
-                                        builder: (context, child) {
-                                          return CustomPaint(
-                                            size: const Size(62, 32),
-                                            painter: ZigzagDemandGraphPainter(
-                                              demandPercentage: demandPercentage,
-                                              animationValue: _lineAnimation.value,
-                                              isHighDemand: isHighDemand,
-                                              demandColor: demandColor,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    // Demand text below
-                                    Text(
-                                      'Demand:',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade800,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                // Small horizontal gap
-                                const SizedBox(width: 4),
-
-                                // Demand value
-                                Text(
-                                  '${widget.crop.demand.toStringAsFixed(1)}',
-                                  style: TextStyle(
-                                    fontSize: 16, // Larger text for demand value
-                                    color: demandColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
+                      ),
+
+                      // Spacer to push demand info to right
+                      const Spacer(flex: 1),
+
+                      // Demand graph and value
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Animated demand graph
+                          Container(
+                            width: 50, // Reduced from 70
+                            height: 30, // Reduced from 40
+                            padding: const EdgeInsets.all(3),
+                            margin: const EdgeInsets.only(right: 15),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: AnimatedBuilder(
+                              animation: _animationController,
+                              builder: (context, child) {
+                                return CustomPaint(
+                                  size: const Size(44, 24), // Adjusted size
+                                  painter: ZigzagDemandGraphPainter(
+                                    demandPercentage: demandPercentage,
+                                    animationValue: _lineAnimation.value,
+                                    isHighDemand: isHighDemand,
+                                    demandColor: demandColor,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+
+                          const SizedBox(width: 4),
+
+                          // Demand value with label
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Demand :',
+                                style: TextStyle(
+                                  fontSize: 14, // Small label
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
+                              Text(
+                                '${widget.crop.demand.toStringAsFixed(2)}%',
+                                style: TextStyle(
+                                  fontSize: 22, // Reduced from 16
+                                  color: demandColor,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -269,7 +265,7 @@ class ZigzagDemandGraphPainter extends CustomPainter {
     // Draw zigzag demand line
     final linePaint = Paint()
       ..color = demandColor
-      ..strokeWidth = 2.5
+      ..strokeWidth = 2.0 // Reduced from 2.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
@@ -335,7 +331,7 @@ class ZigzagDemandGraphPainter extends CustomPainter {
       }
 
       // Ensure y stays within bounds
-      y = y.clamp(5.0, size.height - 5.0);
+      y = y.clamp(3.0, size.height - 3.0); // Reduced from 5.0
       points.add(Offset(x, y));
     }
 
@@ -362,8 +358,6 @@ class ZigzagDemandGraphPainter extends CustomPainter {
       }
 
       canvas.drawPath(path, linePaint);
-
-      // Arrow head code removed as requested
     }
 
     // Draw small tick marks on the axes
@@ -372,8 +366,8 @@ class ZigzagDemandGraphPainter extends CustomPainter {
       ..strokeWidth = 1.0;
 
     // X-axis ticks
-    for (int i = 1; i <= 3; i++) {
-      final x = size.width * (i / 3);
+    for (int i = 1; i <= 2; i++) { // Reduced from 3 to 2 ticks
+      final x = size.width * (i / 2);
       canvas.drawLine(
         Offset(x, size.height),
         Offset(x, size.height - 2),
@@ -382,8 +376,8 @@ class ZigzagDemandGraphPainter extends CustomPainter {
     }
 
     // Y-axis ticks
-    for (int i = 1; i <= 3; i++) {
-      final y = size.height * (i / 3);
+    for (int i = 1; i <= 2; i++) { // Reduced from 3 to 2 ticks
+      final y = size.height * (i / 2);
       canvas.drawLine(
         Offset(0, y),
         Offset(2, y),

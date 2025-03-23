@@ -365,11 +365,12 @@ class _WeatherWidgetState extends State<WeatherWidget> {
                 final date = DateTime.fromMillisecondsSinceEpoch(forecast['dt'] * 1000);
                 final dayName = _formatDayName(date);
                 final forecastIcon = _getWeatherIcon(forecast['weather'][0]['icon']);
+                final forecastTemp = forecast['main']['temp'].toStringAsFixed(0);
 
                 return Container(
                   width: isSmallScreen ? 70 : 80,
                   margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
@@ -381,7 +382,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
                         dayName,
                         style: TextStyle(
                           fontSize: isSmallScreen ? 11 : 12,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
                       ),
@@ -392,12 +393,54 @@ class _WeatherWidgetState extends State<WeatherWidget> {
                           fontSize: isSmallScreen ? 20 : 24,
                         ),
                       ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$forecastTemp°',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 10 : 12,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
                     ],
                   ),
                 );
               },
             ),
           ),
+
+        // Add pagination indicators and swipe hint below forecast
+        const SizedBox(height: 28),
+
+        // Location pagination indicators - moved from top to bottom
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            locations.length,
+                (index) => Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: currentLocationIndex == index
+                    ? Colors.white
+                    : Colors.white.withOpacity(0.4),
+              ),
+            ),
+          ),
+        ),
+
+        // Hint text for swiping - moved below the indicators
+        const SizedBox(height: 8),
+        // Text(
+        //   'Swipe for other locations',
+        //   style: TextStyle(
+        //     fontSize: 12,
+        //     color: Colors.white.withOpacity(0.7),
+        //   ),
+        //   textAlign: TextAlign.center,
+        // ),
       ],
     );
   }
@@ -446,58 +489,21 @@ class _WeatherWidgetState extends State<WeatherWidget> {
       );
     }
 
-    return Column(
-      children: [
-        // Location pagination indicators
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            locations.length,
-                (index) => Container(
-              width: 8,
-              height: 8,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: currentLocationIndex == index
-                    ? Colors.white
-                    : Colors.white.withOpacity(0.4),
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        // Hint text for swiping
-        Text(
-          'Swipe for other locations',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.white.withOpacity(0.7),
-          ),
-          textAlign: TextAlign.center,
-        ),
-
-        const SizedBox(height: 12),
-
-        // Swipeable PageView
-        SizedBox(
-          height: 250, // Adjust height as needed
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: locations.length,
-            onPageChanged: (index) {
-              setState(() {
-                currentLocationIndex = index;
-              });
-            },
-            itemBuilder: (context, index) {
-              return _buildLocationWeather(locations[index], context);
-            },
-          ),
-        ),
-      ],
+    // Modified to directly show the PageView without top pagination indicators
+    return SizedBox(
+      height: 246, // Increased to accommodate pagination at bottom
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: locations.length,
+        onPageChanged: (index) {
+          setState(() {
+            currentLocationIndex = index;
+          });
+        },
+        itemBuilder: (context, index) {
+          return _buildLocationWeather(locations[index], context);
+        },
+      ),
     );
   }
 }
