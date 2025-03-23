@@ -404,55 +404,6 @@ class _HighlightsState extends State<Highlights> {
               ),
             ),
           ),
-
-        // Date card positioned at the center bottom of the highlights card border
-        Positioned(
-          bottom: -12, // Positioned on the border
-          left: 0,
-          right: 0,
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.green.shade200,
-                    Colors.green.shade300,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.12),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 14,
-                    color: Colors.green.shade900,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    formattedDate,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green.shade900,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
