@@ -88,12 +88,24 @@ class _HighlightsState extends State<Highlights> {
       clipBehavior: Clip.none,
       children: [
         Container(
-          // Removed background gradient
+          // Light green gradient background
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.green.shade50.withOpacity(0.8),
+                Colors.green.shade100.withOpacity(0.6),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
           padding: const EdgeInsets.all(15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Transparent header with no border
+
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: InkWell(
@@ -105,6 +117,30 @@ class _HighlightsState extends State<Highlights> {
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
                     // Removed decoration to make it transparent with no borders
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.green.shade50.withOpacity(0.5),
+                          Colors.green.shade100.withOpacity(0.3),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.green.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                          spreadRadius: 1,
+                        ),
+                      ],
+                      border: Border.all(
+                        color: Colors.green.shade200.withOpacity(0.9),
+                        width: 1.5,
+                      ),
+                    ),
+
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                       child: Row(

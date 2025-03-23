@@ -77,9 +77,9 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
 
       // Use batch queries from the optimized database service
       final cropsData =
-          await _databaseService.getCropsWithDemand(weekNo: selectedWeek);
+      await _databaseService.getCropsWithDemand(weekNo: selectedWeek);
       final favoritesData =
-          await _databaseService.getUserFavorites(weekNo: selectedWeek);
+      await _databaseService.getUserFavorites(weekNo: selectedWeek);
 
       if (!mounted) return;
 
@@ -122,240 +122,246 @@ class _HomeTabState extends State<HomeTab> with AutomaticKeepAliveClientMixin {
           child: isLoading && isInitialLoad
               ? const Center(child: CircularProgressIndicator())
               : error != null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.error_outline,
-                              color: Colors.red[700], size: 48),
-                          const SizedBox(height: 16),
-                          Text(
-                            error!,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+              ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline,
+                    color: Colors.red[700], size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  error!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _loadData,
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: _primaryGreen,
+                  ),
+                  child: const Text('Try Again'),
+                ),
+              ],
+            ),
+          )
+              : RefreshIndicator(
+            onRefresh: () async {
+              // Clear cache for the current week
+              final weekProvider =
+              Provider.of<WeekProvider>(context, listen: false);
+              _databaseService.clearCache(
+                  weekNo: weekProvider.selectedWeek);
+              await _loadData();
+            },
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Greeting component - now separated
+                      Container(
+                        margin: EdgeInsets.only(
+                          left: isSmallScreen ? 8 : 2,
+                          right: isSmallScreen ? 8 : 16,
+                          top: isSmallScreen ? 16 : 24,
+                          bottom: 0,
+                        ),
+                        decoration: BoxDecoration(
+                          // gradient: LinearGradient(
+                          //   begin: Alignment.topLeft,
+                          //   end: Alignment.bottomRight,
+                          //   colors: [_headerGreen, _headerTeal],
+                          //   stops: const [0.3, 1.0],
+                          // ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            // BoxShadow(
+                            //   color: Colors.black.withOpacity(0.1),
+                            //   spreadRadius: 1,
+                            //   blurRadius: 6,
+                            //   offset: const Offset(0, 3),
+                            // ),
+                          ],
+                        ),
+                        padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            textTheme: Theme.of(context)
+                                .textTheme
+                                .apply(
+                              bodyColor: _lightText,
+                              displayColor: _lightText,
                             ),
-                            textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 24),
-                          ElevatedButton(
-                            onPressed: _loadData,
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: _primaryGreen,
-                            ),
-                            child: const Text('Try Again'),
-                          ),
-                        ],
+                          child: const Greeting(),
+                        ),
                       ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () async {
-                        // Clear cache for the current week
-                        final weekProvider =
-                            Provider.of<WeekProvider>(context, listen: false);
-                        _databaseService.clearCache(
-                            weekNo: weekProvider.selectedWeek);
-                        await _loadData();
-                      },
-                      child: Stack(
-                        children: [
-                          SingleChildScrollView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Header card with gradient background and curved bottom border
-                                Container(
-                                  margin: EdgeInsets.only(
-                                    left: isSmallScreen ? 8 : 16,
-                                    right: isSmallScreen ? 8 : 16,
-                                    top: isSmallScreen ? 16 : 24,
-                                    bottom: 0,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [_headerGreen, _headerTeal],
-                                      stops: const [0.3, 1.0],
-                                    ),
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(16),
-                                      topRight: Radius.circular(16),
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        spreadRadius: 1,
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
-                                  // Create a custom clipper for the curved bottom border
-                                  child: ClipPath(
-                                    clipper: CurvedBottomClipper(),
-                                    child: Padding(
-                                      padding: EdgeInsets.all(
-                                          isSmallScreen ? 12 : 16),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // Greeting component with theme
-                                          Theme(
-                                            data: Theme.of(context).copyWith(
-                                              textTheme: Theme.of(context)
-                                                  .textTheme
-                                                  .apply(
-                                                    bodyColor: _lightText,
-                                                    displayColor: _lightText,
-                                                  ),
-                                            ),
-                                            child: const Greeting(),
-                                          ),
 
-                                          // Weather widget added below the greeting
-                                          Theme(
-                                            data: Theme.of(context).copyWith(
-                                              textTheme: Theme.of(context)
-                                                  .textTheme
-                                                  .apply(
-                                                    bodyColor: _lightText,
-                                                    displayColor: _lightText,
-                                                  ),
-                                            ),
-                                            child: const WeatherWidget(),
-                                          ),
+                      SizedBox(height: isSmallScreen ? 8 : 12),
 
-                                          // Add extra padding at the bottom for the curve
-                                          SizedBox(
-                                              height: isSmallScreen ? 8 : 16),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-
-                                SizedBox(height: isSmallScreen ? 8 : 12),
-
-                                // Weekly Calendar section - now using the Calendar component
-                                Calendar(
-                                  margin: EdgeInsets.symmetric(
-                                    horizontal: isSmallScreen ? 8 : 16,
-                                    vertical: 8,
-                                  ),
-                                ),
-
-                                SizedBox(height: isSmallScreen ? 8 : 12),
-
-                                // Highlights section
-                                Container(
-                                  margin:
-                                      const EdgeInsets.fromLTRB(12, 0, 12, 16),
-                                  padding: const EdgeInsets.all(16),
-                                  width: double.infinity,
-                                  child: Theme(
-                                    data: Theme.of(context).copyWith(
-                                      primaryColor: _primaryGreen,
-                                      colorScheme: ColorScheme.dark(
-                                        primary: _primaryGreen,
-                                        secondary: Colors.greenAccent,
-                                        surface: _darkBackground,
-                                      ),
-                                      textTheme: Theme.of(context)
-                                          .textTheme
-                                          .copyWith(
-                                            titleMedium: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w600,
-                                              color: _lightText,
-                                              letterSpacing: 0.2,
-                                            ),
-                                            bodyMedium: TextStyle(
-                                              fontSize: 14,
-                                              color:
-                                                  _lightText.withOpacity(0.8),
-                                            ),
-                                          ),
-                                    ),
-                                    child: Highlights(crops: crops),
-                                  ),
-                                ),
-
-                                // Favorites section
-                                Container(
-                                  margin:
-                                      const EdgeInsets.fromLTRB(12, 0, 12, 32),
-                                  padding: const EdgeInsets.all(16),
-                                  width: double.infinity,
-                                  child: Theme(
-                                    data: Theme.of(context).copyWith(
-                                      primaryColor: _primaryGreen,
-                                      colorScheme: ColorScheme.dark(
-                                        primary: _primaryGreen,
-                                        secondary: Colors.greenAccent,
-                                        surface: _darkBackground,
-                                      ),
-                                      textTheme:
-                                          Theme.of(context).textTheme.copyWith(
-                                                titleMedium: TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: _lightText,
-                                                  letterSpacing: 0.2,
-                                                ),
-                                              ),
-                                    ),
-                                    child: FavoritesWithHeartIcons(
-                                        crops: favorites),
-                                  ),
-                                ),
-                              ],
+                      // Weather widget - now separate from greeting
+                      Container(
+                        margin: EdgeInsets.only(
+                          left: isSmallScreen ? 8 : 16,
+                          right: isSmallScreen ? 8 : 16,
+                          bottom: 0,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [_headerGreen, _headerTeal],
+                            stops: const [0.3, 1.0],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            textTheme: Theme.of(context)
+                                .textTheme
+                                .apply(
+                              bodyColor: _lightText,
+                              displayColor: _lightText,
                             ),
                           ),
-                          if (isLoading && !isInitialLoad)
-                            Positioned(
-                              top: 100,
-                              left: 0,
-                              right: 0,
-                              child: Center(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 24, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.7),
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white.withOpacity(0.9),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      const Text(
-                                        'Updating data...',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                          child: const WeatherWidget(),
+                        ),
+                      ),
+
+                      SizedBox(height: isSmallScreen ? 8 : 12),
+
+                      // Weekly Calendar section - now using the Calendar component
+                      Calendar(
+                        margin: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 8 : 16,
+                          vertical: 8,
+                        ),
+                      ),
+
+                      SizedBox(height: isSmallScreen ? 8 : 12),
+
+                      // Highlights section
+                      Container(
+                        margin:
+                        const EdgeInsets.fromLTRB(0, 0, 0, 16),
+                        padding: const EdgeInsets.all(16),
+                        width: double.infinity,
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            primaryColor: _primaryGreen,
+                            colorScheme: ColorScheme.dark(
+                              primary: _primaryGreen,
+                              secondary: Colors.greenAccent,
+                              surface: _darkBackground,
+                            ),
+                            textTheme: Theme.of(context)
+                                .textTheme
+                                .copyWith(
+                              titleMedium: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: _lightText,
+                                letterSpacing: 0.2,
+                              ),
+                              bodyMedium: TextStyle(
+                                fontSize: 14,
+                                color:
+                                _lightText.withOpacity(0.8),
                               ),
                             ),
-                        ],
+                          ),
+                          child: Highlights(crops: crops),
+                        ),
+                      ),
+
+                      // Favorites section
+                      Container(
+                        margin:
+                        const EdgeInsets.fromLTRB(0, 0, 0, 16),
+                        padding: const EdgeInsets.all(16),
+                        width: double.infinity,
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            primaryColor: _primaryGreen,
+                            colorScheme: ColorScheme.dark(
+                              primary: _primaryGreen,
+                              secondary: Colors.greenAccent,
+                              surface: _darkBackground,
+                            ),
+                            textTheme:
+                            Theme.of(context).textTheme.copyWith(
+                              titleMedium: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: _lightText,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                          child: FavoritesWithHeartIcons(
+                              crops: favorites),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isLoading && !isInitialLoad)
+                  Positioned(
+                    top: 100,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Text(
+                              'Updating data...',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -382,7 +388,7 @@ class FavoritesWithHeartIcons extends StatelessWidget {
   }
 }
 
-// Custom clipper for curved bottom border
+// Custom clipper for curved bottom border (kept for reference but no longer used)
 class CurvedBottomClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {

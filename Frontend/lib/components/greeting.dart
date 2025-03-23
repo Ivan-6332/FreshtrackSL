@@ -81,12 +81,12 @@ class _GreetingState extends State<Greeting> {
 
     // Calculate responsive font sizes
     final greetingTextSize = isSmallScreen ? 24.0 : (isMediumScreen ? 32.0 : 40.0);
-    final avatarSize = isSmallScreen ? 60.0 : (isMediumScreen ? 75.0 : 90.0);
+    final avatarSize = isSmallScreen ? 60.0 : (isMediumScreen ? 60.0 : 90.0);
 
     // Calculate responsive padding
     final containerPadding = EdgeInsets.symmetric(
-      horizontal: isSmallScreen ? 16.0 : (isMediumScreen ? 24.0 : 32.0),
-      vertical: isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0),
+      horizontal: isSmallScreen ? 16.0 : (isMediumScreen ? 0.0 : 32.0),
+      vertical: isSmallScreen ? 12.0 : (isMediumScreen ? 0.0 : 20.0),
     );
 
     // Calculate responsive spacing
@@ -94,23 +94,17 @@ class _GreetingState extends State<Greeting> {
 
     // Calculate responsive container properties
     final borderRadius = isSmallScreen ? 16.0 : (isMediumScreen ? 20.0 : 24.0);
-    final containerMargin = EdgeInsets.all(isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0));
+    final containerMargin = EdgeInsets.all(isSmallScreen ? 12.0 : (isMediumScreen ? 0.0 : 20.0));
 
     // Create the greeting text on a single line
-    final greetingText = "Hello ${_firstName.isNotEmpty ? _firstName : "there"}";
+    final greetingText = "Hello, ${_firstName.isNotEmpty ? "$_firstName!": "there!"}";
 
     return Padding(
       padding: containerMargin,
       child: Container(
+
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(borderRadius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              spreadRadius: 0,
-            ),
-          ],
         ),
         padding: containerPadding,
         child: Row(
@@ -152,7 +146,7 @@ class _GreetingState extends State<Greeting> {
                           child: Text(
                             _firstName.isNotEmpty ? _firstName[0].toUpperCase() : "?",
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Colors.black,
                               fontSize: avatarSize * 0.4,
                               fontWeight: FontWeight.bold,
                             ),
@@ -193,16 +187,16 @@ class _GreetingState extends State<Greeting> {
                 style: TextStyle(
                   fontSize: greetingTextSize,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
+                  letterSpacing: -0.215,
                   height: 1.1,
-                  color: Colors.white,
-                  shadows: [
-                    Shadow(
-                      offset: const Offset(1, 1),
-                      blurRadius: 3,
-                      color: Colors.black.withOpacity(0.3),
-                    ),
-                  ],
+                  color: Colors.black,
+                  // shadows: [
+                  //   Shadow(
+                  //     offset: const Offset(1, 1),
+                  //     blurRadius: 3,
+                  //     color: Colors.black.withOpacity(0.3),
+                  //   ),
+                  // ],
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1, // Force single line

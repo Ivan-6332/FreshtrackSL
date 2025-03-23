@@ -125,8 +125,16 @@ class _FavoritesState extends State<Favorites> {
     final localizations = AppLocalizations.of(context);
 
     return Container(
-      // Removed gradient background, now transparent
+      // Light green gradient background matching Highlights
       decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.green.shade50.withOpacity(0.8),
+            Colors.green.shade100.withOpacity(0.6),
+          ],
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(15),
@@ -143,93 +151,119 @@ class _FavoritesState extends State<Favorites> {
                 });
               },
               borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Icon with reduced size
-                        Icon(
-                          Icons.favorite,
-                          color: Colors.green.shade700,
-                          size: 27,
-                        ),
-
-                        const SizedBox(width: 10),
-
-                        // Text section with reduced font size
-                        Text(
-                          localizations.get('favorites'),
-                          style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.black,
-                            letterSpacing: 0.2,
-                            shadows: [
-                              Shadow(
-                                offset: const Offset(0, 1),
-                                blurRadius: 2,
-                                color: Colors.green.withOpacity(0.2),
-                              ),
-                            ],
-                          ),
-                        ),
+              child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.green.shade50.withOpacity(0.5),
+                        Colors.green.shade100.withOpacity(0.3),
                       ],
                     ),
-
-                    Row(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                        spreadRadius: 1,
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.green.shade200.withOpacity(0.9),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Favorites Counter - still with styling but content preserved
-                        GestureDetector(
-                          onTap: () => _showFavoritesPopup(favoriteCrops),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.green.shade300.withOpacity(0.8),
-                                  Colors.green.shade400.withOpacity(0.8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Icon with reduced size
+                            Icon(
+                              Icons.favorite,
+                              color: Colors.green.shade700,
+                              size: 27,
+                            ),
+
+                            const SizedBox(width: 10),
+
+                            // Text section with reduced font size
+                            Text(
+                              localizations.get('favorites'),
+                              style: TextStyle(
+                                fontSize: 25,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.black,
+                                letterSpacing: 0.2,
+                                shadows: [
+                                  Shadow(
+                                    offset: const Offset(0, 1),
+                                    blurRadius: 2,
+                                    color: Colors.green.withOpacity(0.2),
+                                  ),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.green.withOpacity(0.2),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                              border: Border.all(
-                                color: Colors.green.shade200,
-                                width: 1,
-                              ),
                             ),
-                            child: Text(
-                              "${favoriteCrops.length}/5",
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        // Toggle icon
-                        Icon(
-                          _showDescription ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                          color: Colors.green.shade700,
-                          size: 27,
+
+                        Row(
+                          children: [
+                            // Favorites Counter - still with styling but content preserved
+                            GestureDetector(
+                              onTap: () => _showFavoritesPopup(favoriteCrops),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.green.shade300.withOpacity(0.8),
+                                      Colors.green.shade400.withOpacity(0.8),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.green.withOpacity(0.2),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                  border: Border.all(
+                                    color: Colors.green.shade200,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  "${favoriteCrops.length}/5",
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Toggle icon
+                            Icon(
+                              _showDescription ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                              color: Colors.green.shade700,
+                              size: 27,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+              )
+
               ),
             ),
           ),
