@@ -85,10 +85,10 @@ class _MainScreenState extends State<MainScreen>
             MediaQuery.of(context)
                 .padding
                 .bottom, // Adjust height for different devices
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        // margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(25),
+          // borderRadius: BorderRadius.circular(16),
           // Enhanced 3D effect with layered shadows
           boxShadow: [
             // Outer shadow
@@ -137,8 +137,8 @@ class _MainScreenState extends State<MainScreen>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildNavItem(0, Icons.home_rounded, 'Home'),
-                _buildNavItem(1, Icons.explore_rounded, 'Explore'),
-                _buildNavItem(2, Icons.map_rounded, 'Map'),
+                _buildNavItem(1, Icons.search, 'Explore'),
+                _buildNavItem(2, Icons.attach_money, 'Pricing'),
                 _buildNavItem(3, Icons.person_rounded, 'Profile'),
               ],
             ),
@@ -170,7 +170,7 @@ class _MainScreenState extends State<MainScreen>
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? _paleGreen : Colors.transparent,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(16),
           // Add 3D effect to selected item
           boxShadow: isSelected
               ? [
@@ -222,15 +222,15 @@ class _MainScreenState extends State<MainScreen>
                 icon,
                 color: isSelected ? _primaryGreen : _inactiveGrey,
                 size: isSelected ? 26 : 24,
-                shadows: isSelected
-                    ? [
-                        Shadow(
-                          color: _accentGreen.withOpacity(0.5),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ]
-                    : null,
+                // shadows: isSelected
+                //     ? [
+                //         Shadow(
+                //           color: _accentGreen.withOpacity(0.5),
+                //           blurRadius: 8,
+                //           offset: const Offset(0, 3),
+                //         ),
+                //       ]
+                //     : null,
               ),
             ),
             const SizedBox(height: 4),
@@ -239,17 +239,17 @@ class _MainScreenState extends State<MainScreen>
               duration: const Duration(milliseconds: 300),
               style: TextStyle(
                 color: isSelected ? _primaryGreen : _inactiveGrey,
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                shadows: isSelected
-                    ? [
-                        Shadow(
-                          color: _accentGreen.withOpacity(0.5),
-                          blurRadius: 2,
-                          offset: const Offset(0, 1),
-                        ),
-                      ]
-                    : null,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                // shadows: isSelected
+                //     ? [
+                //         Shadow(
+                //           color: _accentGreen.withOpacity(0.5),
+                //           blurRadius: 2,
+                //           offset: const Offset(0, 1),
+                //         ),
+                //       ]
+                //     : null,
               ),
               child: Text(label),
             ),
