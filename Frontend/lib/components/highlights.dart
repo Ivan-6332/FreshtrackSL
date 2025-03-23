@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/crop.dart';
 import 'crop_card.dart';
 import '../config/app_localizations.dart';
-import 'package:intl/intl.dart';
 
 class Highlights extends StatefulWidget {
   final List<Crop> crops;
@@ -76,9 +75,6 @@ class _HighlightsState extends State<Highlights> {
     final lowestDemand = sortedCrops.last;
 
     final localizations = AppLocalizations.of(context);
-    final today = DateTime.now();
-    final dateFormat = DateFormat('dd/MM/yyyy');
-    final formattedDate = dateFormat.format(today);
 
     // Responsive sizing
     final screenWidth = MediaQuery.of(context).size.width;
@@ -88,7 +84,7 @@ class _HighlightsState extends State<Highlights> {
       clipBehavior: Clip.none,
       children: [
         Container(
-          // Removed background gradient
+          // Transparent background (no decoration or color)
           padding: const EdgeInsets.all(15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +186,7 @@ class _HighlightsState extends State<Highlights> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'In here you can see the crop that have the highest demand and the lowest demand today.',
+                            'In here you can see the crop that have the highest demand and the lowest demand according for the week you need.',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -310,7 +306,7 @@ class _HighlightsState extends State<Highlights> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.arrow_back,  // Fixed: changed from arrow_backward to arrow_back
+                    Icons.arrow_back,
                     color: Colors.green.shade800,
                     size: 14,
                   ),
@@ -369,54 +365,7 @@ class _HighlightsState extends State<Highlights> {
             ),
           ),
 
-        // Date card positioned at the center bottom of the highlights card border
-        Positioned(
-          bottom: -12, // Positioned on the border
-          left: 0,
-          right: 0,
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.green.shade200,
-                    Colors.green.shade300,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.12),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 14,
-                    color: Colors.green.shade900,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    formattedDate,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green.shade900,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        // Date card has been removed
       ],
     );
   }
