@@ -12,6 +12,15 @@ class CropPopup extends StatefulWidget {
 
 class _CropPopupState extends State<CropPopup> {
   int _centerWeek = 10;
+  bool _isFavorite = false;
+
+  final Map<int, double> _weeklyDemandData = {
+    8: 65.0,
+    9: 55.0,
+    10: 85.0,
+    11: 60.0,
+    12: 75.0,
+  };
 
   void _shiftTimeframeLeft() {
     setState(() {
@@ -26,6 +35,12 @@ class _CropPopupState extends State<CropPopup> {
       if (_centerWeek < 12) {
         _centerWeek++;
       }
+    });
+  }
+
+  void _toggleFavorite() {
+    setState(() {
+      _isFavorite = !_isFavorite;
     });
   }
 
@@ -91,18 +106,19 @@ class _CropPopupState extends State<CropPopup> {
 
             const SizedBox(height: 20),
 
-            // Bar graph with dynamic week range
+            // Bar graph with dynamic demand data
             SizedBox(
               height: 150,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(5, (index) {
                   int week = _centerWeek - 2 + index;
+                  double demand = _weeklyDemandData[week] ?? 50.0;
                   return Column(
                     children: [
                       Container(
                         width: 40,
-                        height: 100 + (week * 10),  // Dynamic height for demand
+                        height: 100 * (demand / 100),
                         color: Colors.green.shade400,
                       ),
                       const SizedBox(height: 8),
@@ -129,6 +145,39 @@ class _CropPopupState extends State<CropPopup> {
                   onPressed: _shiftTimeframeRight,
                 ),
               ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Favorite button
+            GestureDetector(
+              onTap: _toggleFavorite,
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 16.0),
+                      child: Text(
+                        'Add to Favourites',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: Icon(
+                        _isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: _isFavorite ? Colors.red : Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
