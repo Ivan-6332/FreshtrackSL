@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/crop.dart';
 import '../services/database_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/week_provider.dart';
 
 class CropPopup extends StatefulWidget {
   final Crop crop;
@@ -15,20 +17,9 @@ class _CropPopupState extends State<CropPopup> {
   int _centerWeekNumber = 12; // Default center week
   bool _isFavorite = false;
   bool _isLoading = false;
+  bool _isLoadingDemandData = false;
   final DatabaseService _databaseService = DatabaseService();
-
-  // Dummy data for the bar graph - in a real app, this would come from your data source
-  final Map<int, double> _weeklyDemandData = {
-    8: 65.0,
-    9: 55.0,
-    10: 85.0,
-    11: 60.0,
-    12: 75.0,
-    13: 70.0,
-    14: 90.0,
-    15: 65.0,
-    16: 80.0,
-  };
+  Map<int, double> _weeklyDemandData = {};
 
   @override
   void initState() {
@@ -37,6 +28,17 @@ class _CropPopupState extends State<CropPopup> {
     _isFavorite = widget.crop.isFavorited;
     // Double-check with the database
     _checkFavoriteStatus();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Get the current week from the provider
+    final weekProvider = Provider.of<WeekProvider>(context, listen: false);
+    _centerWeekNumber = weekProvider.selectedWeek;
+
+    // Fetch demand data for the visible weeks
+    _fetchWeeklyDemandData();
   }
 
   Future<void> _checkFavoriteStatus() async {
@@ -59,6 +61,35 @@ class _CropPopupState extends State<CropPopup> {
     }
   }
 
+  Future<void> _fetchWeeklyDemandData() async {
+    setState(() {
+      _isLoadingDemandData = true;
+    });
+
+    try {
+      // Get the weeks to display
+      final visibleWeeks = _getVisibleWeeks();
+
+      // Fetch demand data for these weeks
+      final demandData = await _databaseService.getCropWeeklyDemand(
+          widget.crop.id, visibleWeeks);
+
+      if (mounted) {
+        setState(() {
+          _weeklyDemandData = demandData;
+          _isLoadingDemandData = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingDemandData = false;
+        });
+      }
+      print('Error fetching weekly demand data: $e');
+    }
+  }
+
   void _shiftTimeframeLeft() {
     setState(() {
       if (_centerWeekNumber > 10) {
@@ -66,6 +97,7 @@ class _CropPopupState extends State<CropPopup> {
         _centerWeekNumber--;
       }
     });
+    _fetchWeeklyDemandData();
   }
 
   void _shiftTimeframeRight() {
@@ -75,6 +107,7 @@ class _CropPopupState extends State<CropPopup> {
         _centerWeekNumber++;
       }
     });
+    _fetchWeeklyDemandData();
   }
 
   Future<void> _toggleFavorite() async {
@@ -191,58 +224,66 @@ class _CropPopupState extends State<CropPopup> {
             // Bar graph
             SizedBox(
               height: 200,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: visibleWeeks.map((weekNum) {
-                  final demand =
-                      _weeklyDemandData[weekNum] ?? 50.0; // Default if no data
-                  final isCurrentWeek =
-                      weekNum == 12; // Highlight the current week
+              child: _isLoadingDemandData
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.green.shade400),
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: visibleWeeks.map((weekNum) {
+                        final demand = _weeklyDemandData[weekNum] ?? 0.0;
+                        final isCurrentWeek = weekNum ==
+                            Provider.of<WeekProvider>(context, listen: false)
+                                .selectedWeek;
 
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      // Bar
-                      Container(
-                        width: 40,
-                        height: 140 *
-                            (demand / 100), // Scale height based on demand
-                        decoration: BoxDecoration(
-                          color: isCurrentWeek
-                              ? Colors.green.shade700
-                              : Colors.green.shade400,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(4),
-                            topRight: Radius.circular(4),
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${demand.toInt()}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            // Bar
+                            Container(
+                              width: 40,
+                              height: 140 *
+                                  (demand /
+                                      200), // Scale height based on demand (max at 200%)
+                              decoration: BoxDecoration(
+                                color: isCurrentWeek
+                                    ? Colors.green.shade700
+                                    : Colors.green.shade400,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(4),
+                                  topRight: Radius.circular(4),
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${demand.toInt()}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
 
-                      // Week number
-                      const SizedBox(height: 8),
-                      Text(
-                        '$weekNum',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: isCurrentWeek
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
+                            // Week number
+                            const SizedBox(height: 8),
+                            Text(
+                              '$weekNum',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: isCurrentWeek
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
             ),
 
             const SizedBox(height: 10),

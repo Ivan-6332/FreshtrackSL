@@ -9,6 +9,8 @@ class DatabaseService {
   final Map<String, List<Map<String, dynamic>>> _favoriteCache =
       {}; // Cache for favorites by week
   List<Map<String, dynamic>>? _categoriesCache; // Cache for categories
+  // Cache for weekly demand data for crops
+  final Map<String, Map<int, double>> _weeklyDemandCache = {};
 
   // Get all crops with their demand - optimized with batched queries and caching
   Future<List<Map<String, dynamic>>> getCropsWithDemand({int? weekNo}) async {
@@ -149,6 +151,86 @@ class DatabaseService {
     } catch (e) {
       print('Error fetching user favorites: $e');
       throw Exception('Error fetching favorites: $e');
+    }
+  }
+
+  // Get demand data for a crop across multiple weeks
+  Future<Map<int, double>> getCropWeeklyDemand(
+      String cropId, List<int> weekNumbers) async {
+    try {
+      // Check if we have this data in cache
+      final cacheKey = 'crop_$cropId';
+      if (_weeklyDemandCache.containsKey(cacheKey)) {
+        // Check if we have all the required weeks in cache
+        final cachedData = _weeklyDemandCache[cacheKey]!;
+        bool hasAllWeeks = true;
+        for (final weekNum in weekNumbers) {
+          if (!cachedData.containsKey(weekNum)) {
+            hasAllWeeks = false;
+            break;
+          }
+        }
+        if (hasAllWeeks) {
+          Map<int, double> result = {};
+          for (final weekNum in weekNumbers) {
+            result[weekNum] = cachedData[weekNum]!;
+          }
+          return result;
+        }
+      }
+
+      // Fetch demand data for the specified crop and weeks
+      final demandsResponse = await _supabase
+          .from('demand')
+          .select('week_no, demand')
+          .eq('crop_id', cropId)
+          .in_('week_no', weekNumbers);
+
+      // Create a map of week number to demand
+      final Map<int, double> demandByWeek = {};
+
+      // Initialize with default values (0.0) for all requested weeks
+      for (final weekNum in weekNumbers) {
+        demandByWeek[weekNum] = 0.0;
+      }
+
+      // Fill in actual values from the response
+      if (demandsResponse != null && demandsResponse is List) {
+        for (var item in demandsResponse) {
+          if (item is Map &&
+              item['week_no'] != null &&
+              item['demand'] != null) {
+            final weekNum = item['week_no'] is int
+                ? item['week_no']
+                : int.tryParse(item['week_no'].toString()) ?? 0;
+            final demand = item['demand'] is num
+                ? (item['demand'] is int
+                    ? item['demand'].toDouble()
+                    : item['demand'])
+                : 0.0;
+            demandByWeek[weekNum] = demand;
+          }
+        }
+      }
+
+      // Cache the results
+      if (!_weeklyDemandCache.containsKey(cacheKey)) {
+        _weeklyDemandCache[cacheKey] = {};
+      }
+      for (final entry in demandByWeek.entries) {
+        _weeklyDemandCache[cacheKey]![entry.key] = entry.value;
+      }
+
+      return demandByWeek;
+    } catch (e) {
+      print('Error fetching crop weekly demand: $e');
+
+      // Return empty results with 0.0 for each week
+      Map<int, double> emptyResults = {};
+      for (final weekNum in weekNumbers) {
+        emptyResults[weekNum] = 0.0;
+      }
+      return emptyResults;
     }
   }
 
@@ -310,6 +392,7 @@ class DatabaseService {
       _cropCache.clear();
       _favoriteCache.clear();
       _categoriesCache = null;
+      _weeklyDemandCache.clear();
     }
   }
 
