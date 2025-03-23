@@ -17,6 +17,7 @@ class _HighlightsState extends State<Highlights> {
   bool _showDescription = false;
   final ScrollController _scrollController = ScrollController();
   bool _isShowingLowestDemand = false;
+  int _currentPage = 0;
 
   @override
   void initState() {
@@ -42,10 +43,12 @@ class _HighlightsState extends State<Highlights> {
       if (currentScroll > threshold && !_isShowingLowestDemand) {
         setState(() {
           _isShowingLowestDemand = true;
+          _currentPage = 1;
         });
       } else if (currentScroll <= threshold && _isShowingLowestDemand) {
         setState(() {
           _isShowingLowestDemand = false;
+          _currentPage = 0;
         });
       }
     }
@@ -80,9 +83,9 @@ class _HighlightsState extends State<Highlights> {
     final dateFormat = DateFormat('dd/MM/yyyy');
     final formattedDate = dateFormat.format(today);
 
-    // Responsive sizing
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = screenWidth * 0.7; // 70% of screen width
+    // Use full width for consistent card size with other places in the app
+    final screenWidth = MediaQuery.of(context).size.width - 64;
+    final cardWidth = screenWidth - 30; // Full width minus padding
 
     return Stack(
       clipBehavior: Clip.none,
@@ -295,7 +298,7 @@ class _HighlightsState extends State<Highlights> {
 
               // Horizontal scrollable cards
               SizedBox(
-                height: 200, // Adjust based on your actual card height
+                height: 90, // Fixed height to match the CropCard in other places
                 child: ListView(
                   controller: _scrollController,
                   scrollDirection: Axis.horizontal,
@@ -304,10 +307,7 @@ class _HighlightsState extends State<Highlights> {
                     // Highest demand crop card
                     SizedBox(
                       width: cardWidth,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: CropCard(crop: highestDemand),
-                      ),
+                      child: CropCard(crop: highestDemand),
                     ),
 
                     // Small gap between cards
@@ -316,10 +316,7 @@ class _HighlightsState extends State<Highlights> {
                     // Lowest demand crop card
                     SizedBox(
                       width: cardWidth,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: CropCard(crop: lowestDemand),
-                      ),
+                      child: CropCard(crop: lowestDemand),
                     ),
 
                     // Add padding at the end to allow full scrolling
@@ -328,82 +325,78 @@ class _HighlightsState extends State<Highlights> {
                 ),
               ),
 
+              // Page indicator and swipe text (centered at bottom)
+              Container(
+                margin: const EdgeInsets.only(top: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Page indicator dots
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _currentPage == 0 ?
+                            Colors.red.shade700 :
+                            Colors.grey.shade400,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _currentPage == 1 ?
+                            Colors.green.shade700 :
+                            Colors.grey.shade400,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 12),
+                    // Swipe indicator text
+                    GestureDetector(
+                      onTap: _currentPage == 0 ? _scrollToLowestDemand : _scrollToHighestDemand,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _currentPage == 0 ? 'Swipe for Lowest' : 'Swipe for Highest',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _currentPage == 0 ?
+                              Colors.red.shade700 :
+                              Colors.green.shade700,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            _currentPage == 0 ?
+                            Icons.arrow_forward :
+                            Icons.arrow_back,
+                            color: _currentPage == 0 ?
+                            Colors.red.shade700 :
+                            Colors.green.shade700,
+                            size: 14,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // Small spacing at bottom
-              const SizedBox(height: 18),
+              const SizedBox(height: 8),
             ],
           ),
         ),
-
-        // Dynamic navigation indicator - changes based on scroll position
-        // Show highest demand indicator when at lowest demand
-        if (_isShowingLowestDemand)
-          Positioned(
-            bottom: 15,
-            left: 25, // Positioned at bottom left
-            child: GestureDetector(
-              onTap: _scrollToHighestDemand,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.arrow_back,  // Fixed: changed from arrow_backward to arrow_back
-                    color: Colors.green.shade800,
-                    size: 14,
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    'Highest',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.green.shade900,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Icon(
-                    Icons.arrow_circle_up,
-                    color: Colors.green.shade800,
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
-          )
-
-        // Show lowest demand indicator when at highest demand
-        else
-          Positioned(
-            bottom: 15,
-            right: 25, // Positioned at bottom right
-            child: GestureDetector(
-              onTap: _scrollToLowestDemand,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.arrow_circle_down,
-                    color: Colors.red.shade800,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Lowest',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.red.shade900,
-                    ),
-                  ),
-                  const SizedBox(width: 3),
-                  Icon(
-                    Icons.arrow_forward,
-                    color: Colors.red.shade800,
-                    size: 14,
-                  ),
-                ],
-              ),
-            ),
-          ),
       ],
     );
   }
