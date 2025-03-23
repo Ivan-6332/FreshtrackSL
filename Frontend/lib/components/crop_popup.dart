@@ -106,6 +106,7 @@ class _CropPopupState extends State<CropPopup> {
                         Text(
                           widget.crop.name,
                           style: const TextStyle(
+                            color: Colors.black,
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
                           ),
@@ -172,6 +173,7 @@ class _CropPopupState extends State<CropPopup> {
                       Text(
                         '$weekNum',
                         style: TextStyle(
+                          color: Colors.black,
                           fontWeight: isCurrentWeek ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
@@ -186,7 +188,9 @@ class _CropPopupState extends State<CropPopup> {
             // Week label
             const Text(
               'Week No.',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 20),
@@ -206,8 +210,11 @@ class _CropPopupState extends State<CropPopup> {
                     onPressed: _shiftTimeframeLeft,
                   ),
                   const Text(
-                    'Adjust the timeframe.',
-                    style: TextStyle(fontSize: 16),
+                    'Adjust the timeframe',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
                   ),
                   IconButton(
                     icon: const Icon(Icons.chevron_right),
@@ -235,7 +242,10 @@ class _CropPopupState extends State<CropPopup> {
                       padding: EdgeInsets.only(left: 16.0),
                       child: Text(
                         'Add to Favourites',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
                       ),
                     ),
                     Padding(

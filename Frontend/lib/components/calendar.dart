@@ -111,7 +111,7 @@ class _CalendarState extends State<Calendar>
                   color: Colors.black,
                   width: 2,
                 ),
-                borderRadius: BorderRadius.circular(40),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -157,12 +157,12 @@ class _CalendarState extends State<Calendar>
                 child: ElevatedButton.icon(
                   onPressed: () => weekProvider.resetToCurrentWeek(),
                   icon: const Icon(Icons.today, size: 16),
-                  label: const Text('Reset to Current Week'),
+                  label: const Text('Back to Current Week'),
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
                     backgroundColor: _resetButtonColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
