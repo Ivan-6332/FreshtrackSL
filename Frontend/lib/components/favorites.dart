@@ -269,7 +269,7 @@ class _FavoritesState extends State<Favorites> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Here is your favorite crops and their latest demand rate.',
+                        'Here is your favorite crops and their latest demand rate, and for this favourites list you can add upto five (5) crops.',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
