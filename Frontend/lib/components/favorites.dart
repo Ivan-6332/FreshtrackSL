@@ -137,13 +137,13 @@ class _FavoritesState extends State<Favorites> {
         ),
         borderRadius: BorderRadius.circular(16),
       ),
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Unified header with transparent background
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: 16),
             child: InkWell(
               onTap: () {
                 setState(() {
@@ -303,7 +303,7 @@ class _FavoritesState extends State<Favorites> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Here is your favorite crops and their latest demand rate.',
+                        "Here's your favorite crops and their insights for the selected week!",
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,

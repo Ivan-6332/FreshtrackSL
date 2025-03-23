@@ -226,7 +226,7 @@ class _HighlightsState extends State<Highlights> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'In here you can see the crop that have the highest demand and the lowest demand today.',
+                            "Here's the crops with the highest & lowest demand for the selected week!",
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,

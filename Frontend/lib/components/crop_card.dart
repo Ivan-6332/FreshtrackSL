@@ -43,7 +43,7 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
     final localizations = AppLocalizations.of(context);
     // Calculate percentage of demand relative to max (200%)
     final demandPercentage = widget.crop.demand / 200;
-    final isHighDemand = widget.crop.demand > 100;
+    final isHighDemand = widget.crop.demand > 75;
 
     // Define demand color based on value
     final Color demandColor = isHighDemand ? Colors.green.shade700 : Colors.red.shade700;
@@ -58,7 +58,7 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutQuad,
-          margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+          margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 6.0),
           transform: _isHovered
               ? (Matrix4.identity()..scale(1.05)) // Scale up when hovered/touched
               : Matrix4.identity(),
