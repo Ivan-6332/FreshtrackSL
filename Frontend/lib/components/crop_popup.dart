@@ -20,6 +20,7 @@ class _CropPopupState extends State<CropPopup> {
     10: 85.0,
     11: 60.0,
     12: 75.0,
+    13: 70.0,
   };
 
   void _shiftTimeframeLeft() {
@@ -106,17 +107,19 @@ class _CropPopupState extends State<CropPopup> {
 
             const SizedBox(height: 20),
 
-            // Bar graph with dynamic demand data
+            // Animated bar graph
             SizedBox(
-              height: 150,
+              height: 200,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(5, (index) {
                   int week = _centerWeek - 2 + index;
                   double demand = _weeklyDemandData[week] ?? 50.0;
+
                   return Column(
                     children: [
-                      Container(
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
                         width: 40,
                         height: 100 * (demand / 100),
                         color: Colors.green.shade400,
@@ -149,7 +152,7 @@ class _CropPopupState extends State<CropPopup> {
 
             const SizedBox(height: 20),
 
-            // Favorite button
+            // Favorite button with enhanced UI
             GestureDetector(
               onTap: _toggleFavorite,
               child: Container(
