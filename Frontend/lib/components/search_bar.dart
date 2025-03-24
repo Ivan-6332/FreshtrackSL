@@ -12,7 +12,7 @@ class SearchBarWithProfile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(34), // Slightly larger to accommodate thick border
+          borderRadius: BorderRadius.circular(16), // Slightly larger to accommodate thick border
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -31,11 +31,11 @@ class SearchBarWithProfile extends StatelessWidget {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(3.5), // Thicker border
+          padding: const EdgeInsets.all(2), // Thicker border
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.03),
