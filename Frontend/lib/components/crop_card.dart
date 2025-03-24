@@ -44,7 +44,7 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
     final localizations = AppLocalizations.of(context);
     // Calculate percentage of demand relative to max (200%)
     final demandPercentage = widget.crop.demand / 200;
-    final isHighDemand = widget.crop.demand > 75;
+    final isHighDemand = widget.crop.demand > 70;
 
     // Define demand color based on value
     final Color demandColor = isHighDemand ? Colors.green.shade700 : Colors.red.shade700;
@@ -114,8 +114,8 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
                     children: [
                       // Crop emoji - made smaller
                       Container(
-                        width: 50, // Reduced from 60
-                        height: 50, // Reduced from 60
+                        width: 40, // Reduced from 60
+                        height: 40, // Reduced from 60
                         decoration: BoxDecoration(
                           color: Colors.green.shade50,
                           borderRadius: BorderRadius.circular(8),
@@ -123,7 +123,7 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
                         child: Center(
                           child: Text(
                             widget.crop.pic,
-                            style: const TextStyle(fontSize: 32), // Reduced from 32
+                            style: const TextStyle(fontSize: 30), // Reduced from 32
                           ),
                         ),
                       ),
@@ -142,7 +142,7 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
                             Text(
                               widget.crop.name,
                               style: const TextStyle(
-                                fontSize: 20, // Reduced from 20
+                                fontSize: 17, // Reduced from 18
                                 fontWeight: FontWeight.w800,
                                 color: Colors.black,
                               ),
@@ -151,7 +151,7 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
                             Text(
                               widget.crop.category,
                               style: TextStyle(
-                                fontSize: 14, // Reduced from 14
+                                fontSize: 12, // Reduced from 14
                                 color: Colors.grey.shade600,
                               ),
                               maxLines: 1,
@@ -206,7 +206,7 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
                               Text(
                                 'Demand :',
                                 style: TextStyle(
-                                  fontSize: 14, // Small label
+                                  fontSize: 12, // Small label
                                   fontWeight: FontWeight.w800,
                                   color: Colors.grey.shade800,
                                 ),
@@ -214,7 +214,7 @@ class _CropCardState extends State<CropCard> with SingleTickerProviderStateMixin
                               Text(
                                 '${widget.crop.demand.toStringAsFixed(2)}%',
                                 style: TextStyle(
-                                  fontSize: 22, // Reduced from 16
+                                  fontSize: 17, // Reduced from 16
                                   color: demandColor,
                                   fontWeight: FontWeight.w800,
                                 ),
