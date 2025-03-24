@@ -165,10 +165,53 @@ class _ExploreTabState extends State<ExploreTab>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+
+                              const SizedBox(height: 24),
+
+                              // Explore title with enhanced styling
+                              Padding(
+                                padding:
+                                const EdgeInsets.fromLTRB(16, 16, 0, 0),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 10, horizontal: 0),
+
+                                  child: Text(
+                                    'Explore & Find All Crops Here!',
+                                    style: TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.w800,
+                                      color: _darkText,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              Padding(
+                                padding:
+                                const EdgeInsets.fromLTRB(16, 16, 24, 0),
+                                  child: Container(
+                                    child: Text(
+                                      'Use either the search bar or the categories listed below to filter & find the crops you need.',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w400,
+                                        color: _darkText,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                              ),
+
+                              const SizedBox(height: 16),
+
                               // Search bar without background container
                               Padding(
                                 padding:
-                                    const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                                    const EdgeInsets.fromLTRB(0, 0, 0, 0),
                                 child: Theme(
                                   data: Theme.of(context).copyWith(
                                     primaryColor: _primaryGreen,
@@ -179,42 +222,6 @@ class _ExploreTabState extends State<ExploreTab>
                                     ),
                                   ),
                                   child: const SearchBarWithProfile(),
-                                ),
-                              ),
-
-                              const SizedBox(height: 24),
-
-                              // Explore title with enhanced styling
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(24, 0, 24, 0),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.7),
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: _primaryGreen.withOpacity(0.1),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.5),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Explore',
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: _darkText,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
                                 ),
                               ),
 
