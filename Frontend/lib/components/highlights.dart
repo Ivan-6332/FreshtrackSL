@@ -298,7 +298,7 @@ class _HighlightsState extends State<Highlights> {
 
               // Horizontal scrollable cards
               SizedBox(
-                height: 90, // Fixed height to match the CropCard in other places
+                height: 100, // Fixed height to match the CropCard in other places
                 child: ListView(
                   controller: _scrollController,
                   scrollDirection: Axis.horizontal,
