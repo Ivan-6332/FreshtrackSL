@@ -223,7 +223,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
           ],
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: 12), // Increased spacing
 
         // Current weather
         Row(
@@ -237,7 +237,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
               ),
               child: Text(
                 icon,
-                style: const TextStyle(fontSize: 32),
+                style: const TextStyle(fontSize: 36), // Increased icon size
               ),
             ),
             const SizedBox(width: 16),
@@ -249,7 +249,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
                 Text(
                   '$temp°C',
                   style: TextStyle(
-                    fontSize: isSmallScreen ? 24 : 28,
+                    fontSize: isSmallScreen ? 26 : 30, // Increased text size
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -257,7 +257,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
                 Text(
                   condition,
                   style: TextStyle(
-                    fontSize: isSmallScreen ? 14 : 16,
+                    fontSize: isSmallScreen ? 16 : 18, // Increased text size
                     color: Colors.white.withOpacity(0.9),
                   ),
                 ),
@@ -328,7 +328,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
           ],
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 20), // Increased spacing
 
         // Forecast section header
         if (forecastData.isNotEmpty)
@@ -338,7 +338,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
               Text(
                 'Forecast',
                 style: TextStyle(
-                  fontSize: isSmallScreen ? 13 : 14,
+                  fontSize: isSmallScreen ? 14 : 16, // Increased font size
                   fontWeight: FontWeight.w600,
                   color: Colors.white.withOpacity(0.95),
                 ),
@@ -351,12 +351,12 @@ class _WeatherWidgetState extends State<WeatherWidget> {
             ],
           ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: 10), // Increased spacing
 
-        // 5-day forecast
+        // 5-day forecast with LARGER cards
         if (forecastData.isNotEmpty)
           SizedBox(
-            height: isSmallScreen ? 70 : 80,
+            height: isSmallScreen ? 110 : 130, // INCREASED HEIGHT significantly
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: forecastData.length,
@@ -368,12 +368,19 @@ class _WeatherWidgetState extends State<WeatherWidget> {
                 final forecastTemp = forecast['main']['temp'].toStringAsFixed(0);
 
                 return Container(
-                  width: isSmallScreen ? 70 : 80,
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  width: isSmallScreen ? 80 : 95, // Increased width
+                  margin: const EdgeInsets.only(right: 10), // Increased margin
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8), // Increased padding
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12), // Rounded corners
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -381,23 +388,23 @@ class _WeatherWidgetState extends State<WeatherWidget> {
                       Text(
                         dayName,
                         style: TextStyle(
-                          fontSize: isSmallScreen ? 11 : 12,
+                          fontSize: isSmallScreen ? 13 : 14, // Increased font size
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8), // More spacing
                       Text(
                         forecastIcon,
                         style: TextStyle(
-                          fontSize: isSmallScreen ? 20 : 24,
+                          fontSize: isSmallScreen ? 28 : 32, // Larger icon
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 8), // More spacing
                       Text(
-                        '$forecastTemp°',
+                        '$forecastTemp°C', // Added C for clarity
                         style: TextStyle(
-                          fontSize: isSmallScreen ? 10 : 12,
+                          fontSize: isSmallScreen ? 13 : 15, // Increased font size
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
@@ -410,9 +417,9 @@ class _WeatherWidgetState extends State<WeatherWidget> {
           ),
 
         // Add pagination indicators and swipe hint below forecast
-        const SizedBox(height: 28),
+        const SizedBox(height: 24), // Reduced a little
 
-        // Location pagination indicators - moved from top to bottom
+        // Location pagination indicators
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
@@ -431,8 +438,8 @@ class _WeatherWidgetState extends State<WeatherWidget> {
           ),
         ),
 
-        // Hint text for swiping - moved below the indicators
-        const SizedBox(height: 8),
+        // Hint text for swiping - commented out as per original code
+        // const SizedBox(height: 8),
         // Text(
         //   'Swipe for other locations',
         //   style: TextStyle(
@@ -489,9 +496,9 @@ class _WeatherWidgetState extends State<WeatherWidget> {
       );
     }
 
-    // Modified to directly show the PageView without top pagination indicators
+    // Modified to directly show the PageView with increased height
     return SizedBox(
-      height: 246, // Increased to accommodate pagination at bottom
+      height: 320, // INCREASED from 246 to accommodate larger forecast cards
       child: PageView.builder(
         controller: _pageController,
         itemCount: locations.length,
