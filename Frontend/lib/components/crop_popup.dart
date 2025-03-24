@@ -246,9 +246,7 @@ class _CropPopupState extends State<CropPopup> {
                             // Bar
                             Container(
                               width: 40,
-                              height: 140 *
-                                  (demand /
-                                      200), // Scale height based on demand (max at 200%)
+                              height: 180 * (demand / 100), // Scale height based on demand (max at 200%)
                               decoration: BoxDecoration(
                                 color: isCurrentWeek
                                     ? Colors.green.shade700
@@ -260,7 +258,7 @@ class _CropPopupState extends State<CropPopup> {
                               ),
                               child: Center(
                                 child: Text(
-                                  '${demand.toInt()}',
+                                  '${demand.toDouble()}',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
